@@ -1,0 +1,31 @@
+IGUI_EN = {
+
+    IGUI_MMS_MapMarkerSystem = "Map Marker System",
+
+    IGUI_MMS_AddMarker = "Add Marker",
+    IGUI_MMS_AddNewMarker = "Add New Marker",
+
+    IGUI_MMS_Teleport = "Teleport to Selected",
+    IGUI_MMS_Delete = "Delete Selected",
+
+    IGUI_MMS_Enabled = "Enabled",
+
+    IGUI_MMS_Name = "Name:",
+    IGUI_MMS_Location = "Location:",
+
+    IGUI_MMS_xCoord = "x:",
+    IGUI_MMS_yCoord = "y:",
+
+    IGUI_MMS_Scale = "Scale:",
+    IGUI_MMS_Texture = "Texture:",
+
+    IGUI_MMS_Close = "Close",
+    IGUI_MMS_Cancel = "Cancel",
+    IGUI_MMS_OK = "Ok",
+
+    IGUI_MMS_InvalidName = "The name provided is invalid. Please use only letters numbers or underscores.",  
+    IGUI_MMS_InvalidCoordinates = "Invalid coordinates entered. Ensure you provide valid numerical values.",  
+    IGUI_MMS_InvalidScale = "The scale value is invalid. Please enter a number greater than 0.",  
+    IGUI_MMS_InvalidTexture = "The texture specified is invalid. Verify the texture file exists and is correctly formatted.",  
+
+}
