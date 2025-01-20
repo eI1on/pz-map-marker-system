@@ -204,14 +204,32 @@ function AddMarkerModal:validateInputs()
     end
 
     local textureString = self.textureEntry:getText();
-    local texture = textureExists(textureString);
-    if not texture then
+    if not textureExists(textureString) then
         isValid = false;
         tooltip = tooltip .. getText("IGUI_MMS_InvalidTexture") .. " \n";
+    end
+
+    if isValid then
+        self.okButton.tooltip = nil;
     else
-        -- media/ui/quest1.png
-        if self.textureEntry:isMouseOver() then
-            local x, y = self:getMouseX() + 25, self:getMouseY() + 25;
+        self.okButton.tooltip = tooltip;
+    end
+    self.okButton:setEnable(isValid);
+end
+
+function AddMarkerModal:prerender()
+    ISPanelJoypad.prerender(self);
+    self:validateInputs();
+end
+
+function AddMarkerModal:render()
+    ISPanelJoypad.render(self);
+    if self.textureEntry:isMouseOver() then
+        local textureString = self.textureEntry:getText();
+        local texture = textureExists(textureString);
+        if texture then
+            local x = self:getMouseX() + 25;
+            local y = self:getMouseY() + 25;
             local w, h = texture:getWidth(), texture:getHeight();
             local maxDim = 400;
             local aspect = w / h;
@@ -230,17 +248,6 @@ function AddMarkerModal:validateInputs()
             self:drawTextureScaled(texture, x, y, w, h, 1, 1, 1, 1);
         end
     end
-    if isValid then
-        self.okButton.tooltip = nil;
-    else
-        self.okButton.tooltip = tooltip;
-    end
-    self.okButton:setEnable(isValid);
-end
-
-function AddMarkerModal:prerender()
-    ISPanelJoypad.prerender(self);
-    self:validateInputs();
 end
 
 function AddMarkerModal:onClick(button)

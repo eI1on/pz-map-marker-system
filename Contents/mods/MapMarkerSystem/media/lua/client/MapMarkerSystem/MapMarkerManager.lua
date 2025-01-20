@@ -231,16 +231,29 @@ function MapMarkerManager:populateElements()
     self:populateMarkersList();
 end
 
-function MapMarkerManager:populateMarkersList()
+function MapMarkerManager:populateMarkersList(mapMarkers)
+    local prevSelected =self.markersList.selected;
     self.markersList:clear();
-    MapMarkerSystem.MapMarkers = MapMarkerSystem.Shared.RequestMarkers();
+    if not mapMarkers then
+        MapMarkerSystem.MapMarkers = MapMarkerSystem.Shared.RequestMarkers();
+    else
+        MapMarkerSystem.MapMarkers = mapMarkers;
+    end
     if MapMarkerSystem.MapMarkers then
         for i = 1, #MapMarkerSystem.MapMarkers do
             self.markersList:addItem(MapMarkerSystem.MapMarkers[i].name, MapMarkerSystem.MapMarkers[i]);
         end
         if #MapMarkerSystem.MapMarkers > 0 then
-            self.markersList.selected = 1;
-            self:populateMarkerDetails(MapMarkerSystem.MapMarkers[1]);
+            if prevSelected and prevSelected <= #MapMarkerSystem.MapMarkers then
+                self.markersList.selected = prevSelected;
+                self:populateMarkerDetails(MapMarkerSystem.MapMarkers[prevSelected]);
+            else
+                MapMarkerManager.instance.markersList.selected = 1;
+                MapMarkerManager.instance:populateMarkerDetails(MapMarkerSystem.MapMarkers[1]);
+            end
+        else
+            self.markersList.selected = 0;
+            self:populateMarkerDetails(nil);
         end
     end
 end

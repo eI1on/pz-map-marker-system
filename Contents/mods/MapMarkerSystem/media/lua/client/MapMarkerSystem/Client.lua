@@ -42,9 +42,9 @@ function MapMarkerSystem.render(self, scale, texturePath, x, y)
     end
 end
 
-MapMarkerSystem.ISWorldMap_render = ISWorldMap.render;
+MapMarkerSystem.ISWorldMap_prerender = ISWorldMap.prerender;
 ---@diagnostic disable-next-line: duplicate-set-field
-function ISWorldMap:render()
+function ISWorldMap:prerender()
     local markers = MapMarkerSystem.MapMarkers;
     if markers then
         for i = 1, #markers do
@@ -55,11 +55,11 @@ function ISWorldMap:render()
             end
         end
     end
-    MapMarkerSystem.ISWorldMap_render(self);
+    MapMarkerSystem.ISWorldMap_prerender(self);
 end
 
-MapMarkerSystem.ISMiniMapInner_render = ISMiniMapInner.render;
-function ISMiniMapInner:render()
+MapMarkerSystem.ISMiniMapInner_prerender = ISMiniMapInner.prerender;
+function ISMiniMapInner:prerender()
     local markers = MapMarkerSystem.MapMarkers;
     if markers then
         for i = 1, #markers do
@@ -70,7 +70,7 @@ function ISMiniMapInner:render()
             end
         end
     end
-    MapMarkerSystem.ISMiniMapInner_render(self);
+    MapMarkerSystem.ISMiniMapInner_prerender(self);
 end
 
 local doCommand = false;
@@ -89,24 +89,7 @@ function MapMarkerSystem.Client.ClientCommands.LoadMapMarkers(args)
     MapMarkerSystem.MapMarkers = args;
 
     if MapMarkerManager.instance then
-        local prevSelected = MapMarkerManager.instance.markersList.selected;
-        MapMarkerManager.instance.markersList:clear();
-        for i = 1, #MapMarkerSystem.MapMarkers do
-            MapMarkerManager.instance.markersList:addItem(MapMarkerSystem.MapMarkers[i].name,
-                MapMarkerSystem.MapMarkers[i]);
-        end
-        if #MapMarkerSystem.MapMarkers > 0 then
-            if prevSelected and prevSelected <= #MapMarkerSystem.MapMarkers then
-                MapMarkerManager.instance.markersList.selected = prevSelected;
-                MapMarkerManager.instance:populateMarkerDetails(MapMarkerSystem.MapMarkers[prevSelected]);
-            else
-                MapMarkerManager.instance.markersList.selected = 1;
-                MapMarkerManager.instance:populateMarkerDetails(MapMarkerSystem.MapMarkers[1]);
-            end
-        else
-            MapMarkerManager.instance.markersList.selected = 0;
-            MapMarkerManager.instance:populateMarkerDetails(nil);
-        end
+        MapMarkerManager.instance:populateMarkersList(args);
     end
 end
 
