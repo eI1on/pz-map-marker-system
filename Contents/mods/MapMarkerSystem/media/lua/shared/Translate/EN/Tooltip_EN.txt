@@ -1,0 +1,36 @@
+Tooltip_EN = {
+
+    Tooltip_MMS_MarkerName = "Unique name to identify this marker. <LINE>Nn special characters.",
+    
+    Tooltip_MMS_EnableMarker = "Tick the box to enable the marker.",
+    
+    Tooltip_MMS_TextureX = "X coordinate for the texture marker's center location.",
+    Tooltip_MMS_TextureY = "Y coordinate for the texture marker's center location.",
+
+    Tooltip_MMS_RectCenterX = "X coordinate for the rectangle marker's center location.",
+    Tooltip_MMS_RectCenterY = "Y coordinate for the rectangle marker's center location.",
+    Tooltip_MMS_RectWidth = "Width of the rectangle marker in pixels units.",
+    Tooltip_MMS_RectHeight = "Height of the rectangle marker in pixels units.",
+    Tooltip_MMS_RectColorPicker = "Click to open color selection for the marker's outline and fill.",
+    
+    Tooltip_MMS_AreaX1 = "X coordinate of the first top corner (North-West) of the area marker.",
+    Tooltip_MMS_AreaY1 = "Y coordinate of the first top corner (North-West) of the area marker.",
+    Tooltip_MMS_AreaX2 = "X coordinate of the opposite corner, the bottom corner (South-East) of the area marker.",
+    Tooltip_MMS_AreaY2 = "Y coordinate of the opposite corner, the bottom corner (South-East) of the area marker.",
+    Tooltip_MMS_AreaColorPicker = "Click to open color selection for the marker's outline.",
+
+    Tooltip_MMS_TexturePath = "Full path to the texture image file. <LINE>Example: media/ui/mymarker.png",
+
+    Tooltip_MMS_Scale = "Scale of the marker.",
+    Tooltip_MMS_FixedScale = "When checked the marker size remains constant regardless of zoom level.",
+    Tooltip_MMS_MaxZoom = "The marker will only appear when zoom level is below this value. <LINE> Range: 100-0.",
+
+    Tooltip_MMS_InvalidName = "The name provided is invalid. Please use only letters numbers or underscores.",  
+    Tooltip_MMS_InvalidCoordinates = "Invalid coordinates entered. Provide only valid numerical values.",  
+    Tooltip_MMS_InvalidSize = "Invalid width and height entered. Provide only valid numerical values.",  
+    Tooltip_MMS_InvalidScale = "The scale value is invalid. Please enter a number greater than 0.",  
+    Tooltip_MMS_InvalidTexture = "The texture specified is invalid. Verify the texture file exists and is correctly formatted.",  
+    Tooltip_MMS_InvalidAreaCoordinates = "The coordinates provided do not form a valid area.",
+    Tooltip_MMS_InvalidZoom = "The zoom value is invalid. Please enter a number greater than 0.",  
+
+}

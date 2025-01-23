@@ -5,6 +5,15 @@ IGUI_EN = {
     IGUI_MMS_AddMarker = "Add Marker",
     IGUI_MMS_AddNewMarker = "Add New Marker",
 
+    IGUI_MMS_MarkerType = "Marker Type",
+    IGUI_MMS_TextureMarker = "Texture Marker",
+    IGUI_MMS_RectangleMarker = "Rectangle Marker",
+    IGUI_MMS_AreaMarker = "Area Marker",
+
+    IGUI_MMS_Color = "Color",
+    IGUI_MMS_FixedScale = "Fixed-scale marker",
+    IGUI_MMS_MaxZoom = "Max Zoom",
+
     IGUI_MMS_Teleport = "Teleport to Selected",
     IGUI_MMS_Delete = "Delete Selected",
 
@@ -13,8 +22,11 @@ IGUI_EN = {
     IGUI_MMS_Name = "Name:",
     IGUI_MMS_Location = "Location:",
 
-    IGUI_MMS_xCoord = "x:",
-    IGUI_MMS_yCoord = "y:",
+    IGUI_MMS_xCoord = "x%1:",
+    IGUI_MMS_yCoord = "y%1:",
+
+    IGUI_MMS_wMarker = "w:",
+    IGUI_MMS_hMarker = "h:",
 
     IGUI_MMS_Scale = "Scale:",
     IGUI_MMS_Texture = "Texture:",
@@ -22,10 +34,5 @@ IGUI_EN = {
     IGUI_MMS_Close = "Close",
     IGUI_MMS_Cancel = "Cancel",
     IGUI_MMS_OK = "Ok",
-
-    IGUI_MMS_InvalidName = "The name provided is invalid. Please use only letters numbers or underscores.",  
-    IGUI_MMS_InvalidCoordinates = "Invalid coordinates entered. Ensure you provide valid numerical values.",  
-    IGUI_MMS_InvalidScale = "The scale value is invalid. Please enter a number greater than 0.",  
-    IGUI_MMS_InvalidTexture = "The texture specified is invalid. Verify the texture file exists and is correctly formatted.",  
 
 }
