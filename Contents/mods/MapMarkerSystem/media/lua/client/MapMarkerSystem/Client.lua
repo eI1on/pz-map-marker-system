@@ -21,21 +21,30 @@ local function getCachedTexture(texturePath)
 end
 
 
-local minScale = 360.03494;
-local maxScale = 0.043949578;
-local logMinScale = 2.55634464941;  -- precomputed math.log(minScale)
-local logMaxScale = -1.35704529063; -- precomputed math.log(maxScale)
-local logScaleRange = logMaxScale - logMinScale;
+local MIN_ZOOM_SCALE = 360.03494;
+local MAX_ZOOM_SCALE = 0.043949578;
+local LOG_MIN_SCALE = 2.55634464941;  -- precomputed math.log(MIN_ZOOM_SCALE)
+local LOG_MAX_SCALE = -1.35704529063; -- precomputed math.log(MAX_ZOOM_SCALE)
+local LOG_SCALE_RANGE = LOG_MAX_SCALE - LOG_MIN_SCALE;
+
 local zoomCache = {};
 function MapMarkerSystem.normalizeZoomScale(worldScale)
     if zoomCache[worldScale] then return zoomCache[worldScale]; end
     local logCurrentScale = math.log(worldScale);
     local normalizedZoom = math.floor(
-        ((logCurrentScale - logMinScale) / logScaleRange) * 100
+        ((logCurrentScale - LOG_MIN_SCALE) / LOG_SCALE_RANGE) * 100
     );
     normalizedZoom = (normalizedZoom < 0) and 0 or ((normalizedZoom > 100) and 100 or normalizedZoom);
     zoomCache[worldScale] = normalizedZoom;
     return normalizedZoom;
+end
+
+function MapMarkerSystem.calculateScaledMarkerSize(worldScale, baseScale)
+    local THRESHOLD_SCALE = 0.2;
+    local MULTIPLIER_FACTOR = 0.1;
+    local targetScale = (worldScale <= THRESHOLD_SCALE) and worldScale or
+        (THRESHOLD_SCALE + (worldScale * MULTIPLIER_FACTOR - THRESHOLD_SCALE) * MULTIPLIER_FACTOR);
+    return baseScale * targetScale;
 end
 
 ---@param self ISWorldMap|ISMiniMapInner
@@ -55,16 +64,8 @@ function MapMarkerSystem.renderTextureMarker(self, marker)
     local uiX = api:worldToUIX(marker.coordinates.center.x, marker.coordinates.center.y);
     local uiY = api:worldToUIY(marker.coordinates.center.x, marker.coordinates.center.y);
 
-    local markerSize;
-    if marker.lockZoom then
-        markerSize = marker.scale;
-    else
-        local thresholdScale = 0.2;
-        local multiplierFactor = 0.1;
-        local targetScale = (worldScale <= thresholdScale) and worldScale or
-            (thresholdScale + (worldScale * multiplierFactor - thresholdScale) * multiplierFactor);
-        markerSize = marker.scale * targetScale;
-    end
+    local markerSize = marker.lockZoom and marker.scale or
+        MapMarkerSystem.calculateScaledMarkerSize(worldScale, marker.scale);
 
     self:setStencilRect(0, 0, self.width, self.height);
     self:drawTextureScaledAspect(texture, uiX - markerSize * 0.5, uiY - markerSize * 0.5, markerSize, markerSize, 0.9,
@@ -148,27 +149,27 @@ function MapMarkerSystem.renderRectangleMarker(self, marker)
         markerWidth = marker.coordinates.width * marker.scale;
         markerHeight = marker.coordinates.height * marker.scale;
     else
-        local thresholdScale = 0.2;
-        local multiplierFactor = 0.1;
-        local targetScale = (worldScale <= thresholdScale) and worldScale or
-            (thresholdScale + (worldScale * multiplierFactor - thresholdScale) * multiplierFactor);
-        markerWidth = marker.coordinates.width * marker.scale * targetScale;
-        markerHeight = marker.coordinates.height * marker.scale * targetScale;
+        local targetScale = MapMarkerSystem.calculateScaledMarkerSize(worldScale, marker.scale);
+        markerWidth = marker.coordinates.width * targetScale;
+        markerHeight = marker.coordinates.height * targetScale;
     end
 
     local halfWidth = markerWidth / 2;
     local halfHeight = markerHeight / 2;
 
-    local borderR = math.max(0, marker.color.r - 0.3);
-    local borderG = math.max(0, marker.color.g - 0.3);
-    local borderB = math.max(0, marker.color.b - 0.3);
+    local borderColor = {
+        r = math.max(0, marker.color.r - 0.3),
+        g = math.max(0, marker.color.g - 0.3),
+        b = math.max(0, marker.color.b - 0.3)
+    };
 
     self:setStencilRect(0, 0, self.width, self.height);
     self:drawRect(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, marker.color.a, marker.color.r,
         marker.color.g, marker.color.b);
-    self:drawRectBorder(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, 1, borderR, borderG, borderB);
+    self:drawRectBorder(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, 1, borderColor.r, borderColor.g, borderColor.b);
     if marker.name then
-        self:drawText(marker.name, uiX + halfWidth + 5, uiY - halfHeight, 0, 0, 0, 1, UIFont.Small);
+        local textHeight = getTextManager():MeasureStringY(UIFont.Small, marker.name);
+        self:drawText(marker.name, uiX + halfWidth + 5, uiY - textHeight / 2, 0, 0, 0, 1, UIFont.Small);
     end
     self:clearStencilRect();
 end

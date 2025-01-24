@@ -8,7 +8,7 @@ MapMarkerManager.instance = nil;
 
 local CONST = {
     PADDING = 10,
-    ELEMENT_HEIGHT = 20,
+    ELEMENT_HEIGHT = 25,
     WINDOW_WIDTH = 350,
     WINDOW_HEIGHT = 600,
     LABEL_WIDTH = 80,
@@ -107,9 +107,9 @@ function MapMarkerManager:createChildren()
     self:addChild(self.deleteMarkerBtn);
     y = y + CONST.BUTTON_HEIGHT + CONST.SECTION_SPACING;
 
-    -- Markers List (taking about 50% of remaining height)
+    -- Markers List (taking about 40% of remaining height)
     local remainingHeight = CONST.WINDOW_HEIGHT - y - CONST.BUTTON_HEIGHT - CONST.PADDING;
-    local listHeight = math.floor(remainingHeight * 0.5);
+    local listHeight = math.floor(remainingHeight * 0.4);
     self.markersList = ISScrollingListBox:new(x, y, CONST.WINDOW_WIDTH - (CONST.PADDING * 2), listHeight);
     self.markersList:initialise();
     self.markersList:instantiate();
@@ -199,6 +199,16 @@ function MapMarkerManager:createChildren()
     self.nwYEntryBox:setOnlyNumbers(true);
     self:addChild(self.nwYEntryBox);
 
+    self.pickNWButton = ISButton:new(self.nwYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
+        CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickNWButton:initialise();
+    self.pickNWButton:instantiate();
+    self.pickNWButton.internal = "PICK_NW";
+    self.pickNWButton:setImage(getTexture("media/ui/pick_current_location.png"));
+    self.pickNWButton:setTooltip(getText("Tooltip_MMS_PickCurrentLocation"));
+    self.pickNWButton.borderColor = CONST.COLORS.BORDER;
+    self:addChild(self.pickNWButton);
+
     y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
 
     -- SE Coordinates for Area Type Marker, Width and Height for Rectangle Type
@@ -229,6 +239,16 @@ function MapMarkerManager:createChildren()
     self.seYEntryBox.onTextChange = self.onCoordsInputChange;
     self.seYEntryBox:setOnlyNumbers(true);
     self:addChild(self.seYEntryBox);
+
+    self.pickSEButton = ISButton:new(self.seYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
+        CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickSEButton:initialise();
+    self.pickSEButton:instantiate();
+    self.pickSEButton.internal = "PICK_SE";
+    self.pickSEButton:setImage(getTexture("media/ui/pick_current_location.png"));
+    self.pickSEButton:setTooltip(getText("Tooltip_MMS_PickCurrentLocation"));
+    self.pickSEButton.borderColor = CONST.COLORS.BORDER;
+    self:addChild(self.pickSEButton);
     y = self.seXLabel:getBottom() + CONST.ITEM_SPACING;
 
     -- Texture
@@ -547,27 +567,7 @@ function MapMarkerManager:onCoordsInputChange()
         mapMarkerData.coordinates[coordKey] = targetCoords;
     end
 
-    if mapMarkerData.markerType == "texture" then
-        updateCoordinates(self.coordType:sub(1, 1), "center");
-    elseif mapMarkerData.markerType == "rectangle" then
-        if self.coordType == "x1" or self.coordType == "y1" then
-            updateCoordinates(self.coordType:sub(1, 1), "center");
-        else
-            mapMarkerData.coordinates.width = self.coordType == "x2" and coordVal or mapMarkerData.coordinates.width;
-            mapMarkerData.coordinates.height = self.coordType == "y2" and coordVal or mapMarkerData.coordinates.height;
-        end
-    elseif mapMarkerData.markerType == "area" then
-        local coordKey = (self.coordType == "x1" or self.coordType == "y1") and "nw" or "se";
-        updateCoordinates(self.coordType:sub(1, 1), coordKey);
-    end
-
-    self.parent:validateCoords(mapMarkerData);
-end
-
-function MapMarkerManager:validateCoords(mapMarkerData)
-    local selectedMapMarkerIdx = self:getMapMarkerIdx();
-
-    local function updateCoordinate(coordKey, value)
+    local function sendCoordinate(coordKey, value)
         sendClientCommand("MapMarkerSystem", "EditMarkerData", {
             selectedIdx = selectedMapMarkerIdx,
             newKey = coordKey,
@@ -575,55 +575,43 @@ function MapMarkerManager:validateCoords(mapMarkerData)
         });
     end
 
-    if mapMarkerData.markerType == "rectangle" then
+    if mapMarkerData.markerType == "texture" then
+        updateCoordinates(self.coordType:sub(1, 1), "center");
+        local center = mapMarkerData.coordinates.center or { x = -1, y = -1 };
+        if center.x ~= -1 and center.y ~= -1 then
+            sendCoordinate("coordinates.center.x", center.x);
+            sendCoordinate("coordinates.center.y", center.y);
+        end
+    elseif mapMarkerData.markerType == "rectangle" then
+        if self.coordType == "x1" or self.coordType == "y1" then
+            updateCoordinates(self.coordType:sub(1, 1), "center");
+            local center = mapMarkerData.coordinates.center or { x = -1, y = -1 };
+            if center.x ~= -1 and center.y ~= -1 then
+                sendCoordinate("coordinates.center.x", center.x);
+                sendCoordinate("coordinates.center.y", center.y);
+            end
+        else
+            mapMarkerData.coordinates.width = self.coordType == "x2" and coordVal or mapMarkerData.coordinates.width;
+            mapMarkerData.coordinates.height = self.coordType == "y2" and coordVal or mapMarkerData.coordinates.height;
+            if not (mapMarkerData.coordinates.width < 1 or mapMarkerData.coordinates.height < 1) then
+                sendCoordinate("coordinates.width", mapMarkerData.coordinates.width);
+                sendCoordinate("coordinates.height", mapMarkerData.coordinates.height);
+            end
+        end
+    elseif mapMarkerData.markerType == "area" then
+        local coordKey = (self.coordType == "x1" or self.coordType == "y1") and "nw" or "se";
+        updateCoordinates(self.coordType:sub(1, 1), coordKey);
+
         local nw = mapMarkerData.coordinates.nw or { x = -1, y = -1 };
         local se = mapMarkerData.coordinates.se or { x = -1, y = -1 };
-
         if nw.x ~= -1 and nw.y ~= -1 then
-            updateCoordinate("coordinates.nw.x", nw.x);
-            updateCoordinate("coordinates.nw.y", nw.y);
+            sendCoordinate("coordinates.nw.x", nw.x);
+            sendCoordinate("coordinates.nw.y", nw.y);
         end
-
         if se.x ~= -1 and se.y ~= -1 then
-            updateCoordinate("coordinates.se.x", se.x);
-            updateCoordinate("coordinates.se.y", se.y);
+            sendCoordinate("coordinates.se.x", se.x);
+            sendCoordinate("coordinates.se.y", se.y);
         end
-    else
-        local center = mapMarkerData.coordinates.center or { x = -1, y = -1 };
-
-        if center.x ~= -1 and center.y ~= -1 then
-            updateCoordinate("coordinates.center.x", center.x);
-            updateCoordinate("coordinates.center.y", center.y);
-        end
-    end
-end
-
-function MapMarkerManager:updateTooltips(markerData)
-    self.nwXEntryBox:setTooltip(nil);
-    self.nwYEntryBox:setTooltip(nil);
-    self.seXEntryBox:setTooltip(nil);
-    self.seYEntryBox:setTooltip(nil);
-    self.textureEntryBox:setTooltip(nil);
-    self.scaleEntryBox:setTooltip(nil);
-
-    if markerData.markerType == "texture" then
-        self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_TextureX"));
-        self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_TextureY"));
-        self.textureEntryBox:setTooltip(getText("Tooltip_MMS_TexturePath"));
-        self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
-    elseif markerData.markerType == "rectangle" then
-        self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterX"));
-        self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterY"));
-        self.seXEntryBox:setTooltip(getText("Tooltip_MMS_RectWidth"));
-        self.seYEntryBox:setTooltip(getText("Tooltip_MMS_RectHeight"));
-        self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
-        self.colorPickerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
-    elseif markerData.markerType == "area" then
-        self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX1"));
-        self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY1"));
-        self.seXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX2"));
-        self.seYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY2"));
-        self.colorPickerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
     end
 end
 
@@ -646,6 +634,7 @@ function MapMarkerManager:updateElementsPositions(markerData)
     self.nwYLabel:setY(y);
     self.nwXEntryBox:setY(y);
     self.nwYEntryBox:setY(y);
+    self.pickNWButton:setY(y);
     y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
 
     if markerData.markerType == "texture" then
@@ -681,6 +670,7 @@ function MapMarkerManager:updateElementsPositions(markerData)
         self.seXEntryBox:setY(y);
         self.seYLabel:setY(y);
         self.seYEntryBox:setY(y);
+        self.pickSEButton:setY(y);
         y = self.seXEntryBox:getBottom() + CONST.ITEM_SPACING;
 
         self.textureLabel:setVisible(false);
@@ -699,7 +689,57 @@ function MapMarkerManager:updateElementsPositions(markerData)
 end
 
 function MapMarkerManager:populateElementsDetails(markerData)
-    self:resetAllMarkerComponents();
+    self.markerTypeValLabel:setName("");
+
+    self.markerNameEntryBox:setText("");
+    self.markerNameEntryBox:setEditable(false);
+
+    self.enableMarkerTickBox:setSelected(1, false);
+
+    self.nwXEntryBox:setText("");
+    self.nwXEntryBox:setEditable(false);
+    self.nwYEntryBox:setText("");
+    self.nwYEntryBox:setEditable(false);
+
+    self.seXEntryBox:setText("");
+    self.seXEntryBox:setEditable(false);
+    self.seYEntryBox:setText("");
+    self.seYEntryBox:setEditable(false);
+
+    self.textureEntryBox:setText("");
+    self.textureEntryBox:setEditable(false);
+
+    self.colorPickerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+    self.colorLabel:setColor(1, 1, 1);
+
+    self.scaleEntryBox:setText("");
+    self.scaleEntryBox:setEditable(false);
+
+    self.lockZoomTickBox:setSelected(1, false);
+
+    self.maxZoomEntryBox:setText("");
+    self.maxZoomEntryBox:setEditable(false);
+
+    local componentsToHide = {
+        'markerTypeLabel', 'markerTypeValLabel',
+        'markerNameLabel', 'markerNameEntryBox',
+        'enableMarkerTickBox', 'locationLabel',
+        'nwXLabel', 'nwXEntryBox',
+        'nwYLabel', 'nwYEntryBox', 'pickNWButton',
+        'seXLabel', 'seXEntryBox',
+        'seYLabel', 'seYEntryBox', 'pickSEButton',
+        'textureLabel', 'textureEntryBox',
+        'colorLabel', 'colorPickerButton',
+        'scaleLabel', 'scaleEntryBox',
+        'lockZoomTickBox',
+        'maxZoomLabel', 'maxZoomEntryBox'
+    };
+    for i = 1, #componentsToHide do
+        local component = self[componentsToHide[i]];
+        if component and component.setVisible then
+            component:setVisible(false);
+        end
+    end
 
     if not markerData then return; end
 
@@ -722,197 +762,160 @@ function MapMarkerManager:populateElementsDetails(markerData)
     self.enableMarkerTickBox:setSelected(1, markerData.isEnabled or false);
 
     self.locationLabel:setVisible(true);
-
-    self.nwXLabel:setVisible(true);
-    self.nwXEntryBox:setVisible(true);
-
-    self.nwYLabel:setVisible(true);
-    self.nwYEntryBox:setVisible(true);
-
-    self.seXLabel:setVisible(true);
-    self.seXEntryBox:setVisible(true);
-
-    self.seYLabel:setVisible(true);
-    self.seYEntryBox:setVisible(true);
-
-    self.textureLabel:setVisible(true);
-    self.textureEntryBox:setVisible(true);
-
-    self.colorLabel:setVisible(true);
-    self.colorPickerButton:setVisible(true);
-
-    self.scaleLabel:setVisible(true);
-    self.scaleEntryBox:setVisible(true);
-
-    self.lockZoomTickBox:setVisible(true);
-    self.lockZoomTickBox:setSelected(1, markerData.lockZoom or false);
-
     self.maxZoomLabel:setVisible(true);
+    self.maxZoomEntryBox:setText(tostring(markerData.maxZoomLevel or ""));
+    self.maxZoomEntryBox:setEditable(true);
     self.maxZoomEntryBox:setVisible(true);
 
-    if markerData.markerType == "texture" then
-        local center = markerData.coordinates.center or { x = -1, y = -1 };
+    local typeConfigs = {
+        ["texture"] = function()
+            local center = markerData.coordinates.center or { x = -1, y = -1 };
+            self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
+            self.nwXEntryBox:setText(tostring(center.x or ""));
+            self.nwXLabel:setVisible(true);
+            self.nwXEntryBox:setVisible(true);
+            self.nwXEntryBox:setEditable(true);
 
-        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
-        self.nwXEntryBox:setText(tostring(center.x or ""));
-        self.nwXEntryBox:setEditable(true);
+            self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
+            self.nwYEntryBox:setText(tostring(center.y or ""));
+            self.nwYLabel:setVisible(true);
+            self.nwYEntryBox:setVisible(true);
+            self.nwYEntryBox:setEditable(true);
+            self.pickNWButton:setVisible(true);
 
-        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
-        self.nwYEntryBox:setText(tostring(center.y or ""));
-        self.nwYEntryBox:setEditable(true);
+            self.textureEntryBox:setText(markerData.texturePath or "");
+            self.textureEntryBox:setEditable(true);
+            self.textureLabel:setVisible(true);
+            self.textureEntryBox:setVisible(true);
 
-        self.seXLabel:setVisible(false);
-        self.seXEntryBox:setVisible(false);
+            self.scaleEntryBox:setText(tostring(markerData.scale or ""));
+            self.scaleEntryBox:setEditable(true);
+            self.scaleLabel:setVisible(true);
+            self.scaleEntryBox:setVisible(true);
 
-        self.seYLabel:setVisible(false);
-        self.seYEntryBox:setVisible(false);
+            self.lockZoomTickBox:setSelected(1, markerData.lockZoom or false);
+            self.lockZoomTickBox:setVisible(true);
+        end,
+        ["rectangle"] = function()
+            local center = markerData.coordinates.center or { x = -1, y = -1 };
+            self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
+            self.nwXEntryBox:setText(tostring(center.x or ""));
+            self.nwXLabel:setVisible(true);
+            self.nwXEntryBox:setVisible(true);
+            self.nwXEntryBox:setEditable(true);
 
-        self.textureEntryBox:setText(markerData.texturePath or "");
-        self.textureEntryBox:setEditable(true);
+            self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
+            self.nwYEntryBox:setText(tostring(center.y or ""));
+            self.nwYLabel:setVisible(true);
+            self.nwYEntryBox:setVisible(true);
+            self.nwYEntryBox:setEditable(true);
+            self.pickNWButton:setVisible(true);
 
-        self.colorLabel:setVisible(false);
-        self.colorPickerButton:setVisible(false);
+            self.seXLabel:setName(getText("IGUI_MMS_wMarker"));
+            self.seXEntryBox:setText(tostring(markerData.coordinates.width or ""));
+            self.seXLabel:setVisible(true);
+            self.seXEntryBox:setVisible(true);
+            self.seXEntryBox:setEditable(true);
 
-        self.scaleEntryBox:setText(tostring(markerData.scale or ""));
-        self.scaleEntryBox:setEditable(true);
+            self.seYLabel:setName(getText("IGUI_MMS_hMarker"));
+            self.seYEntryBox:setText(tostring(markerData.coordinates.height or ""));
+            self.seYLabel:setVisible(true);
+            self.seYEntryBox:setVisible(true);
+            self.seYEntryBox:setEditable(true);
 
-        self.lockZoomTickBox:setSelected(1, markerData.lockZoom or false);
+            self.scaleEntryBox:setText(tostring(markerData.scale or ""));
+            self.scaleEntryBox:setEditable(true);
+            self.scaleLabel:setVisible(true);
+            self.scaleEntryBox:setVisible(true);
 
-        self.maxZoomEntryBox:setText(tostring(markerData.maxZoomLevel or ""));
-        self.maxZoomEntryBox:setEditable(true);
-    elseif markerData.markerType == "rectangle" then
-        local center = markerData.coordinates.center or { x = -1, y = -1 };
+            self.lockZoomTickBox:setSelected(1, markerData.lockZoom or false);
+            self.lockZoomTickBox:setVisible(true);
 
-        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
-        self.nwXEntryBox:setText(tostring(center.x or ""));
-        self.nwXEntryBox:setEditable(true);
+            if markerData.color then
+                self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
+                self.colorPickerButton.backgroundColor = markerData.color;
+                self.colorLabel:setVisible(true);
+                self.colorPickerButton:setVisible(true);
+            end
+        end,
+        ["area"] = function()
+            local nw = markerData.coordinates.nw or { x = -1, y = -1 };
+            local se = markerData.coordinates.se or { x = -1, y = -1 };
 
-        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
-        self.nwYEntryBox:setText(tostring(center.y or ""));
-        self.nwYEntryBox:setEditable(true);
+            self.nwXLabel:setName(getText("IGUI_MMS_xCoord", "1"));
+            self.nwXEntryBox:setText(tostring(nw.x or ""));
+            self.nwXLabel:setVisible(true);
+            self.nwXEntryBox:setVisible(true);
+            self.nwXEntryBox:setEditable(true);
 
-        self.seXLabel:setName(getText("IGUI_MMS_wMarker"));
-        self.seXEntryBox:setText(tostring(markerData.coordinates.width or ""));
-        self.seXEntryBox:setEditable(true);
+            self.nwYLabel:setName(getText("IGUI_MMS_yCoord", "1"));
+            self.nwYEntryBox:setText(tostring(nw.y or ""));
+            self.nwYLabel:setVisible(true);
+            self.nwYEntryBox:setVisible(true);
+            self.nwYEntryBox:setEditable(true);
+            self.pickNWButton:setVisible(true);
 
-        self.seYLabel:setName(getText("IGUI_MMS_hMarker"));
-        self.seYEntryBox:setText(tostring(markerData.coordinates.height or ""));
-        self.seYEntryBox:setEditable(true);
+            self.seXLabel:setName(getText("IGUI_MMS_xCoord", "2"));
+            self.seXEntryBox:setText(tostring(se.x or ""));
+            self.seXLabel:setVisible(true);
+            self.seXEntryBox:setVisible(true);
+            self.seXEntryBox:setEditable(true);
 
-        self.textureLabel:setVisible(false);
-        self.textureEntryBox:setVisible(false);
+            self.seYLabel:setName(getText("IGUI_MMS_yCoord", "2"));
+            self.seYEntryBox:setText(tostring(se.y or ""));
+            self.seYLabel:setVisible(true);
+            self.seYEntryBox:setVisible(true);
+            self.seYEntryBox:setEditable(true);
+            self.pickSEButton:setVisible(true);
 
-        self.scaleEntryBox:setText(tostring(markerData.scale or ""));
-        self.scaleEntryBox:setEditable(true);
-    
-        self.maxZoomEntryBox:setText(tostring(markerData.maxZoomLevel or ""));
-        self.maxZoomEntryBox:setEditable(true);
-
-        if markerData.color then
-            self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
-            self.colorPickerButton.backgroundColor = markerData.color;
+            if markerData.color then
+                self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
+                self.colorPickerButton.backgroundColor = markerData.color;
+                self.colorLabel:setVisible(true);
+                self.colorPickerButton:setVisible(true);
+            end
         end
-    elseif markerData.markerType == "area" then
-        local nw = markerData.coordinates.nw or { x = -1, y = -1 };
-        local se = markerData.coordinates.se or { x = -1, y = -1 };
+    };
 
-        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", "1"));
-        self.nwXEntryBox:setText(tostring(nw.x or ""));
-        self.nwXEntryBox:setEditable(true);
-
-        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", "1"));
-        self.nwYEntryBox:setText(tostring(nw.y or ""));
-        self.nwYEntryBox:setEditable(true);
-
-        self.seXLabel:setName(getText("IGUI_MMS_xCoord", "2"));
-        self.seXEntryBox:setText(tostring(se.x or ""));
-        self.seXEntryBox:setEditable(true);
-
-        self.seYLabel:setName(getText("IGUI_MMS_yCoord", "2"));
-        self.seYEntryBox:setText(tostring(se.y or ""));
-        self.seYEntryBox:setEditable(true);
-
-        self.textureLabel:setVisible(false);
-        self.textureEntryBox:setVisible(false);
-
-        self.scaleLabel:setVisible(false);
-        self.scaleEntryBox:setVisible(false);
-        self.lockZoomTickBox:setVisible(false);
-
-        self.maxZoomEntryBox:setText(tostring(markerData.maxZoomLevel or ""));
-        self.maxZoomEntryBox:setEditable(true);
-
-        if markerData.color then
-            self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
-            self.colorPickerButton.backgroundColor = markerData.color;
+    local tooltipConfigs = {
+        ["texture"] = function()
+            self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_TextureX"));
+            self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_TextureY"));
+            self.textureEntryBox:setTooltip(getText("Tooltip_MMS_TexturePath"));
+            self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
+        end,
+        ["rectangle"] = function()
+            self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterX"));
+            self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterY"));
+            self.seXEntryBox:setTooltip(getText("Tooltip_MMS_RectWidth"));
+            self.seYEntryBox:setTooltip(getText("Tooltip_MMS_RectHeight"));
+            self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
+            self.colorPickerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
+        end,
+        ["area"] = function()
+            self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX1"));
+            self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY1"));
+            self.seXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX2"));
+            self.seYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY2"));
+            self.colorPickerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
         end
+    };
+
+    self.nwXEntryBox:setTooltip(nil);
+    self.nwYEntryBox:setTooltip(nil);
+    self.seXEntryBox:setTooltip(nil);
+    self.seYEntryBox:setTooltip(nil);
+    self.textureEntryBox:setTooltip(nil);
+    self.scaleEntryBox:setTooltip(nil);
+    self.colorPickerButton:setTooltip(nil);
+
+    if typeConfigs[markerData.markerType] then
+        typeConfigs[markerData.markerType]();
     end
-
+    if tooltipConfigs[markerData.markerType] then
+        tooltipConfigs[markerData.markerType]();
+    end
     self:updateElementsPositions(markerData);
-    self:updateTooltips(markerData);
-end
-
-function MapMarkerManager:resetAllMarkerComponents()
-    self.markerTypeLabel:setVisible(false);
-    self.markerTypeValLabel:setName("");
-    self.markerTypeValLabel:setVisible(false);
-
-    self.markerNameLabel:setVisible(false);
-    self.markerNameEntryBox:setText("");
-    self.markerNameEntryBox:setEditable(false);
-    self.markerNameEntryBox:setVisible(false);
-
-    self.enableMarkerTickBox:setSelected(1, false);
-    self.enableMarkerTickBox:setVisible(false);
-
-    self.locationLabel:setVisible(false);
-
-    self.nwXLabel:setName(getText("IGUI_MMS_xCoord", "1"));
-    self.nwXLabel:setVisible(false);
-    self.nwXEntryBox:setText("");
-    self.nwXEntryBox:setEditable(false);
-    self.nwXEntryBox:setVisible(false);
-
-    self.nwYLabel:setName(getText("IGUI_MMS_yCoord", "1"));
-    self.nwYLabel:setVisible(false);
-    self.nwYEntryBox:setText("");
-    self.nwYEntryBox:setEditable(false);
-    self.nwYEntryBox:setVisible(false);
-
-    self.seXLabel:setName(getText("IGUI_MMS_xCoord", "2"));
-    self.seXLabel:setVisible(false);
-    self.seXEntryBox:setText("");
-    self.seXEntryBox:setEditable(false);
-    self.seXEntryBox:setVisible(false);
-
-    self.seYLabel:setName(getText("IGUI_MMS_yCoord", "2"));
-    self.seYLabel:setVisible(false);
-    self.seYEntryBox:setText("");
-    self.seYEntryBox:setEditable(false);
-    self.seYEntryBox:setVisible(false);
-
-    self.textureLabel:setVisible(false);
-    self.textureEntryBox:setText("");
-    self.textureEntryBox:setEditable(false);
-    self.textureEntryBox:setVisible(false);
-
-    self.colorLabel:setVisible(false);
-    self.colorPickerButton:setVisible(false);
-    self.colorPickerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
-    self.colorLabel:setColor(1, 1, 1);
-
-    self.scaleLabel:setVisible(false);
-    self.scaleEntryBox:setText("");
-    self.scaleEntryBox:setEditable(false);
-    self.scaleEntryBox:setVisible(false);
-
-    self.lockZoomTickBox:setSelected(1, false);
-    self.lockZoomTickBox:setVisible(false);
-
-    self.maxZoomLabel:setVisible(false);
-    self.maxZoomEntryBox:setText("");
-    self.maxZoomEntryBox:setEditable(false);
-    self.maxZoomEntryBox:setVisible(false);
 end
 
 function MapMarkerManager:drawMapMarkersListItem(y, item, alt)
@@ -1026,6 +1029,23 @@ function MapMarkerManager:onAddMapMarker(target, newMapMarker)
     sendClientCommand("MapMarkerSystem", "AddMapMarker", { newMapMarker = newMapMarker });
     self.markersList:addItem(newMapMarker.name, newMapMarker);
     self.refresh = 3;
+end
+
+function MapMarkerManager:onClickPickLocation(button)
+    local isoPlayer = getPlayer();
+    local x = math.floor(isoPlayer:getX());
+    local y = math.floor(isoPlayer:getY());
+    if button.internal == "PICK_NW" then
+        self.nwXEntryBox:setText(tostring(x or ""));
+        self.nwYEntryBox:setText(tostring(y or ""));
+        self.nwXEntryBox:onTextChange();
+        self.nwYEntryBox:onTextChange();
+    elseif button.internal == "PICK_SE" then
+        self.seXEntryBox:setText(tostring(x or ""));
+        self.seYEntryBox:setText(tostring(y or ""));
+        self.seXEntryBox:onTextChange();
+        self.seYEntryBox:onTextChange();
+    end
 end
 
 function MapMarkerManager.openPanel()

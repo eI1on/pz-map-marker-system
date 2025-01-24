@@ -3,7 +3,7 @@ local AddMarkerModal = ISPanelJoypad:derive("AddMarkerModal");
 local CONST = {
     PADDING = 20,
     ELEMENT_HEIGHT = 25,
-    MODAL_WIDTH = 325,
+    MODAL_WIDTH = 335,
     MODAL_HEIGHT = 450,
     LABEL_WIDTH = 80,
     ENTRY_WIDTH = 200,
@@ -84,6 +84,7 @@ function AddMarkerModal:updateUIPositions()
             seXLabel = nil,
             seYLabel = nil,
             showSecondCoords = false,
+            showPickSEButton = false,
             showFixedScale = true,
             additionalFields = self.configureTextureFields
         },
@@ -93,6 +94,7 @@ function AddMarkerModal:updateUIPositions()
             seXLabel = getText("IGUI_MMS_wMarker"),
             seYLabel = getText("IGUI_MMS_hMarker"),
             showSecondCoords = true,
+            showPickSEButton = false,
             showFixedScale = true,
             additionalFields = self.configureRectangleFields
         },
@@ -102,6 +104,7 @@ function AddMarkerModal:updateUIPositions()
             seXLabel = getText("IGUI_MMS_xCoord", "2"),
             seYLabel = getText("IGUI_MMS_yCoord", "2"),
             showSecondCoords = true,
+            showPickSEButton = true,
             showFixedScale = false,
             additionalFields = self.configureColorField
         }
@@ -112,12 +115,20 @@ function AddMarkerModal:updateUIPositions()
     self.nwYLabel:setY(y);
     self.nwXEntryBox:setY(y);
     self.nwYEntryBox:setY(y);
+    self.pickNWButton:setY(y);
     y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
 
     local config = coordinateConfigs[self.currentType];
 
     self.nwXLabel:setName(config.nwXLabel);
     self.nwYLabel:setName(config.nwYLabel);
+
+    if config.showPickSEButton then
+        self.pickSEButton:setVisible(true);
+        self.pickSEButton:setY(y);
+    else
+        self.pickSEButton:setVisible(false);
+    end
 
     if config.showSecondCoords then
         self.seXLabel:setName(config.seXLabel);
@@ -213,6 +224,7 @@ function AddMarkerModal:onMarkerTypeChanged(buttons, index)
 
     self.seYLabel:setVisible(false);
     self.seYEntryBox:setVisible(false);
+    self.pickSEButton:setVisible(false);
 
     self.colorLabel:setVisible(false);
     self.colorPickerButton:setVisible(false);
@@ -290,12 +302,12 @@ function AddMarkerModal:createChildren()
         true);
     self.nameLabel:initialise();
     self.nameLabel:instantiate();
+    self:addChild(self.nameLabel);
 
     self.nameEntryBox = ISTextEntryBox:new("", self.markerTypeRadio:getX(), y, CONST.ENTRY_WIDTH, CONST.ELEMENT_HEIGHT);
     self.nameEntryBox:initialise();
     self.nameEntryBox:instantiate();
     self.nameEntryBox:setTooltip(getText("Tooltip_MMS_MarkerName"));
-    self:addChild(self.nameLabel);
     self:addChild(self.nameEntryBox);
     y = self.nameLabel:getBottom() + CONST.ITEM_SPACING;
 
@@ -315,6 +327,8 @@ function AddMarkerModal:createChildren()
         CONST.ELEMENT_HEIGHT);
     self.nwXEntryBox:initialise();
     self.nwXEntryBox:instantiate();
+    self.nwXEntryBox:setOnlyNumbers(true);
+    self:addChild(self.nwXEntryBox);
 
     self.nwYLabel = ISLabel:new(self.nwXEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
         getText("IGUI_MMS_yCoord", "1"), 1, 1, 1, 1, CONST.FONT.MEDIUM, true);
@@ -325,10 +339,17 @@ function AddMarkerModal:createChildren()
         CONST.ELEMENT_HEIGHT);
     self.nwYEntryBox:initialise();
     self.nwYEntryBox:instantiate();
-    self.nwXEntryBox:setOnlyNumbers(true);
     self.nwYEntryBox:setOnlyNumbers(true);
-    self:addChild(self.nwXEntryBox);
     self:addChild(self.nwYEntryBox);
+
+    self.pickNWButton = ISButton:new(self.nwYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT, CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickNWButton:initialise();
+    self.pickNWButton:instantiate();
+    self.pickNWButton.internal = "PICK_NW";
+    self.pickNWButton:setImage(getTexture("media/ui/pick_current_location.png"));
+    self.pickNWButton:setTooltip(getText("Tooltip_MMS_PickCurrentLocation"));
+    self.pickNWButton.borderColor = CONST.COLORS.BORDER;
+    self:addChild(self.pickNWButton);
     y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
 
     -- SE Coordinates for Area Type Marker, Width and Height for Rectangle Type
@@ -341,6 +362,8 @@ function AddMarkerModal:createChildren()
         CONST.ELEMENT_HEIGHT);
     self.seXEntryBox:initialise();
     self.seXEntryBox:instantiate();
+    self.seXEntryBox:setOnlyNumbers(true);
+    self:addChild(self.seXEntryBox);
 
     self.seYLabel = ISLabel:new(self.seXEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
         getText("IGUI_MMS_yCoord", "2"), 1, 1, 1, 1, CONST.FONT.MEDIUM, true);
@@ -351,10 +374,17 @@ function AddMarkerModal:createChildren()
         CONST.ELEMENT_HEIGHT);
     self.seYEntryBox:initialise();
     self.seYEntryBox:instantiate();
-    self.seXEntryBox:setOnlyNumbers(true);
     self.seYEntryBox:setOnlyNumbers(true);
-    self:addChild(self.seXEntryBox);
     self:addChild(self.seYEntryBox);
+
+    self.pickSEButton = ISButton:new(self.seYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT, CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickSEButton:initialise();
+    self.pickSEButton:instantiate();
+    self.pickSEButton.internal = "PICK_SE";
+    self.pickSEButton:setImage(getTexture("media/ui/pick_current_location.png"));
+    self.pickSEButton:setTooltip(getText("Tooltip_MMS_PickCurrentLocation"));
+    self.pickSEButton.borderColor = CONST.COLORS.BORDER;
+    self:addChild(self.pickSEButton);
     y = self.seXEntryBox:getBottom() + CONST.ITEM_SPACING;
 
     -- Texture specific controls
@@ -618,6 +648,19 @@ function AddMarkerModal:onClick(button)
             self.onclick(self.target, button, data);
         end
         self:destroy();
+    end
+end
+
+function AddMarkerModal:onClickPickLocation(button)
+    local isoPlayer = getPlayer();
+    local x = math.floor(isoPlayer:getX());
+    local y = math.floor(isoPlayer:getY());
+    if button.internal == "PICK_NW" then
+        self.nwXEntryBox:setText(tostring(x or ""));
+        self.nwYEntryBox:setText(tostring(y or ""));
+    elseif button.internal == "PICK_SE" then
+        self.seXEntryBox:setText(tostring(x or ""));
+        self.seYEntryBox:setText(tostring(y or ""));
     end
 end
 

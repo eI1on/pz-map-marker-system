@@ -19,11 +19,13 @@ Tooltip_EN = {
     Tooltip_MMS_AreaY2 = "Y coordinate of the opposite corner, the bottom corner (South-East) of the area marker.",
     Tooltip_MMS_AreaColorPicker = "Click to open color selection for the marker's outline.",
 
+    Tooltip_MMS_PickCurrentLocation = "Choose the player's current location for the coordinates to the left of this button.",
+
     Tooltip_MMS_TexturePath = "Full path to the texture image file. <LINE>Example: media/ui/mymarker.png",
 
     Tooltip_MMS_Scale = "Scale of the marker.",
     Tooltip_MMS_FixedScale = "When checked the marker size remains constant regardless of zoom level.",
-    Tooltip_MMS_MaxZoom = "The marker will only appear when zoom level is below this value. <LINE> Range: 100-0.",
+    Tooltip_MMS_MaxZoom = "Zoom Levels Explained: <LINE> This uses a logarithmic scale, NOT a linear 0-100 percentage. <LINE> This means: <LINE><SPACE> - Small changes near 0 represent huge zoom differences. <LINE><SPACE> - 50 does NOT mean 'middle zoom' as you might expect. <LINE> 100 = Most Zoomed Out, 0 = Most Zoomed In. <LINE> Adjust carefully to see markers at desired zoom levels.",
 
     Tooltip_MMS_InvalidName = "The name provided is invalid. Please use only letters numbers or underscores.",  
     Tooltip_MMS_InvalidCoordinates = "Invalid coordinates entered. Provide only valid numerical values.",  
