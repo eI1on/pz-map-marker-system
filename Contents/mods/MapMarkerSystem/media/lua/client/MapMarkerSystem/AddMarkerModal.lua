@@ -1,3 +1,4 @@
+local MapMarkerSystem = require("MapMarkerSystem/Shared");
 local AddMarkerModal = ISPanelJoypad:derive("AddMarkerModal");
 
 local CONST = {
@@ -77,62 +78,69 @@ function AddMarkerModal:updateUIPositions()
     self.nameEntryBox:setY(y);
     y = self.nameLabel:getBottom() + CONST.ITEM_SPACING;
 
-    local coordinateConfigs = {
-        texture = {
-            nwXLabel = getText("IGUI_MMS_xCoord", ""),
-            nwYLabel = getText("IGUI_MMS_yCoord", ""),
-            seXLabel = nil,
-            seYLabel = nil,
-            showSecondCoords = false,
-            showPickSEButton = false,
-            showFixedScale = true,
-            additionalFields = self.configureTextureFields
-        },
-        rectangle = {
-            nwXLabel = getText("IGUI_MMS_xCoord", ""),
-            nwYLabel = getText("IGUI_MMS_yCoord", ""),
-            seXLabel = getText("IGUI_MMS_wMarker"),
-            seYLabel = getText("IGUI_MMS_hMarker"),
-            showSecondCoords = true,
-            showPickSEButton = false,
-            showFixedScale = true,
-            additionalFields = self.configureRectangleFields
-        },
-        area = {
-            nwXLabel = getText("IGUI_MMS_xCoord", "1"),
-            nwYLabel = getText("IGUI_MMS_yCoord", "1"),
-            seXLabel = getText("IGUI_MMS_xCoord", "2"),
-            seYLabel = getText("IGUI_MMS_yCoord", "2"),
-            showSecondCoords = true,
-            showPickSEButton = true,
-            showFixedScale = false,
-            additionalFields = self.configureColorField
-        }
-    }
+    if self.currentType == "texture" then
+        self.locationLabel:setY(y);
+        self.nwXLabel:setY(y);
+        self.nwYLabel:setY(y);
+        self.nwXEntryBox:setY(y);
+        self.nwYEntryBox:setY(y);
+        self.pickNWButton:setY(y);
+        y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
 
-    self.locationLabel:setY(y);
-    self.nwXLabel:setY(y);
-    self.nwYLabel:setY(y);
-    self.nwXEntryBox:setY(y);
-    self.nwYEntryBox:setY(y);
-    self.pickNWButton:setY(y);
-    y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
+        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
+        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
 
-    local config = coordinateConfigs[self.currentType];
-
-    self.nwXLabel:setName(config.nwXLabel);
-    self.nwYLabel:setName(config.nwYLabel);
-
-    if config.showPickSEButton then
-        self.pickSEButton:setVisible(true);
-        self.pickSEButton:setY(y);
-    else
         self.pickSEButton:setVisible(false);
-    end
 
-    if config.showSecondCoords then
-        self.seXLabel:setName(config.seXLabel);
-        self.seYLabel:setName(config.seYLabel);
+        self.seXLabel:setVisible(false);
+        self.seXEntryBox:setVisible(false);
+        self.seYLabel:setVisible(false);
+        self.seYEntryBox:setVisible(false);
+
+        y = self:configureTextureFields(y);
+
+        self.lockZoomTickBox:setVisible(true);
+        self.lockZoomTickBox:setY(y);
+        y = self.lockZoomTickBox:getBottom() + CONST.ITEM_SPACING;
+    elseif self.currentType == "rectangle" then
+        self.enableMarkerNameTickBox:setVisible(true);
+        self.enableMarkerNameTickBox:setY(y);
+        y = self.enableMarkerNameTickBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.markerNameFontLabel:setVisible(true);
+        self.markerNameFontLabel:setY(y);
+        self.markerNameFontComboBox:setVisible(true);
+        self.markerNameFontComboBox:setY(y);
+        y = self.markerNameFontComboBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.colorLabelMarkerName:setVisible(true);
+        self.colorLabelMarkerName:setY(y);
+        self.colorPickerMarkerNameButton:setVisible(true);
+        self.colorPickerMarkerNameButton:setY(y);
+        y = self.colorLabelMarkerName:getBottom() + CONST.ITEM_SPACING;
+
+        self.scaleNameLabel:setVisible(true);
+        self.scaleNameLabel:setY(y);
+        self.scaleNameEntryBox:setVisible(true);
+        self.scaleNameEntryBox:setY(y);
+        y = self.scaleNameLabel:getBottom() + CONST.ITEM_SPACING;
+
+
+        self.locationLabel:setY(y);
+        self.nwXLabel:setY(y);
+        self.nwYLabel:setY(y);
+        self.nwXEntryBox:setY(y);
+        self.nwYEntryBox:setY(y);
+        self.pickNWButton:setY(y);
+        y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
+
+        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
+        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", ""));
+
+        self.pickSEButton:setVisible(false);
+
+        self.seXLabel:setName(getText("IGUI_MMS_wMarker"));
+        self.seYLabel:setName(getText("IGUI_MMS_hMarker"));
         self.seXLabel:setVisible(true);
         self.seXEntryBox:setVisible(true);
         self.seYLabel:setVisible(true);
@@ -142,20 +150,64 @@ function AddMarkerModal:updateUIPositions()
         self.seYLabel:setY(y);
         self.seYEntryBox:setY(y);
         y = self.seXEntryBox:getBottom() + CONST.ITEM_SPACING;
-    else
-        self.seXLabel:setVisible(false);
-        self.seXEntryBox:setVisible(false);
-        self.seYLabel:setVisible(false);
-        self.seYEntryBox:setVisible(false);
-    end
 
-    y = config.additionalFields(self, y);
+        y = self:configureRectangleFields(y);
 
-    if config.showFixedScale then
         self.lockZoomTickBox:setVisible(true);
         self.lockZoomTickBox:setY(y);
         y = self.lockZoomTickBox:getBottom() + CONST.ITEM_SPACING;
-    else
+    elseif self.currentType == "area" then
+        self.enableMarkerNameTickBox:setVisible(true);
+        self.enableMarkerNameTickBox:setY(y);
+        y = self.enableMarkerNameTickBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.markerNameFontLabel:setVisible(true);
+        self.markerNameFontLabel:setY(y);
+        self.markerNameFontComboBox:setVisible(true);
+        self.markerNameFontComboBox:setY(y);
+        y = self.markerNameFontComboBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.colorLabelMarkerName:setVisible(true);
+        self.colorLabelMarkerName:setY(y);
+        self.colorPickerMarkerNameButton:setVisible(true);
+        self.colorPickerMarkerNameButton:setY(y);
+        y = self.colorLabelMarkerName:getBottom() + CONST.ITEM_SPACING;
+
+        self.scaleNameLabel:setVisible(true);
+        self.scaleNameLabel:setY(y);
+        self.scaleNameEntryBox:setVisible(true);
+        self.scaleNameEntryBox:setY(y);
+        y = self.scaleNameLabel:getBottom() + CONST.ITEM_SPACING;
+
+
+        self.locationLabel:setY(y);
+        self.nwXLabel:setY(y);
+        self.nwYLabel:setY(y);
+        self.nwXEntryBox:setY(y);
+        self.nwYEntryBox:setY(y);
+        self.pickNWButton:setY(y);
+        y = self.locationLabel:getBottom() + CONST.ITEM_SPACING;
+
+        self.nwXLabel:setName(getText("IGUI_MMS_xCoord", "1"));
+        self.nwYLabel:setName(getText("IGUI_MMS_yCoord", "1"));
+
+        self.pickSEButton:setVisible(true);
+        self.pickSEButton:setY(y);
+
+        self.seXLabel:setName(getText("IGUI_MMS_xCoord", "2"));
+        self.seYLabel:setName(getText("IGUI_MMS_yCoord", "2"));
+        self.seXLabel:setVisible(true);
+        self.seXEntryBox:setVisible(true);
+        self.seYLabel:setVisible(true);
+        self.seYEntryBox:setVisible(true);
+        self.seXLabel:setY(y);
+        self.seXEntryBox:setY(y);
+        self.seYLabel:setY(y);
+        self.seYEntryBox:setY(y);
+        y = self.seXEntryBox:getBottom() + CONST.ITEM_SPACING;
+
+        y = self:configureColorField(y);
+
         self.lockZoomTickBox:setVisible(false);
     end
 
@@ -163,17 +215,18 @@ function AddMarkerModal:updateUIPositions()
     self.maxZoomEntryBox:setY(y);
     y = self.maxZoomEntryBox:getBottom() + CONST.ITEM_SPACING;
 
-    local buttonY = math.max(y + CONST.SECTION_SPACING, self.height - CONST.BUTTON_HEIGHT - CONST.PADDING);
-    self.okButton:setY(buttonY);
-    self.cancelButton:setY(buttonY);
+    self.okButton:setY(y + CONST.SECTION_SPACING);
+    self.cancelButton:setY(y + CONST.SECTION_SPACING);
+
+    self:setHeight(y + CONST.SECTION_SPACING + CONST.BUTTON_HEIGHT + CONST.PADDING);
 end
 
 function AddMarkerModal:configureRectangleFields(y)
-    self.colorLabel:setVisible(true);
-    self.colorPickerButton:setVisible(true);
-    self.colorLabel:setY(y);
-    self.colorPickerButton:setY(y);
-    y = self.colorLabel:getBottom() + CONST.ITEM_SPACING;
+    self.colorLabelMarker:setVisible(true);
+    self.colorPickerMarkerButton:setVisible(true);
+    self.colorLabelMarker:setY(y);
+    self.colorPickerMarkerButton:setY(y);
+    y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
 
     self.scaleLabel:setVisible(true);
     self.scaleEntryBox:setVisible(true);
@@ -201,11 +254,11 @@ function AddMarkerModal:configureTextureFields(y)
 end
 
 function AddMarkerModal:configureColorField(y)
-    self.colorLabel:setVisible(true);
-    self.colorPickerButton:setVisible(true);
-    self.colorLabel:setY(y);
-    self.colorPickerButton:setY(y);
-    y = self.colorLabel:getBottom() + CONST.ITEM_SPACING;
+    self.colorLabelMarker:setVisible(true);
+    self.colorPickerMarkerButton:setVisible(true);
+    self.colorLabelMarker:setY(y);
+    self.colorPickerMarkerButton:setY(y);
+    y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
 
     return y;
 end
@@ -213,6 +266,16 @@ end
 function AddMarkerModal:onMarkerTypeChanged(buttons, index)
     local markerTypes = { "texture", "rectangle", "area" };
     self.currentType = markerTypes[index] or markerTypes[1];
+
+    self.enableMarkerNameTickBox:setVisible(false);
+    self.markerNameFontLabel:setVisible(false);
+    self.markerNameFontComboBox:setVisible(false);
+
+    self.colorLabelMarkerName:setVisible(false);
+    self.colorPickerMarkerNameButton:setVisible(false);
+
+    self.scaleNameLabel:setVisible(false);
+    self.scaleNameEntryBox:setVisible(false);
 
     self.textureLabel:setVisible(false);
     self.textureEntryBox:setVisible(false);
@@ -226,8 +289,8 @@ function AddMarkerModal:onMarkerTypeChanged(buttons, index)
     self.seYEntryBox:setVisible(false);
     self.pickSEButton:setVisible(false);
 
-    self.colorLabel:setVisible(false);
-    self.colorPickerButton:setVisible(false);
+    self.colorLabelMarker:setVisible(false);
+    self.colorPickerMarkerButton:setVisible(false);
 
     self:updateTooltips();
     self:updateUIPositions();
@@ -239,27 +302,22 @@ function AddMarkerModal:updateTooltips()
     self.nwYEntryBox:setTooltip(nil);
     self.seXEntryBox:setTooltip(nil);
     self.seYEntryBox:setTooltip(nil);
-    self.textureEntryBox:setTooltip(nil);
-    self.scaleEntryBox:setTooltip(nil);
 
     if self.currentType == "texture" then
         self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_TextureX"));
         self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_TextureY"));
-        self.textureEntryBox:setTooltip(getText("Tooltip_MMS_TexturePath"));
-        self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
     elseif self.currentType == "rectangle" then
         self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterX"));
         self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterY"));
         self.seXEntryBox:setTooltip(getText("Tooltip_MMS_RectWidth"));
         self.seYEntryBox:setTooltip(getText("Tooltip_MMS_RectHeight"));
-        self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
-        self.colorPickerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
+        self.colorPickerMarkerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
     elseif self.currentType == "area" then
         self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX1"));
         self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY1"));
         self.seXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX2"));
         self.seYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY2"));
-        self.colorPickerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
+        self.colorPickerMarkerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
     end
 end
 
@@ -311,6 +369,76 @@ function AddMarkerModal:createChildren()
     self:addChild(self.nameEntryBox);
     y = self.nameLabel:getBottom() + CONST.ITEM_SPACING;
 
+    -- Name control
+    self.enableMarkerNameTickBox = ISTickBox:new(x, y, CONST.COORD_ENTRY_WIDTH, CONST.ELEMENT_HEIGHT);
+    self.enableMarkerNameTickBox:initialise();
+    self.enableMarkerNameTickBox:addOption(getText("IGUI_MMS_EnableMarkerName"));
+    self.enableMarkerNameTickBox:setFont(UIFont.Medium);
+    self.enableMarkerNameTickBox:setWidthToFit();
+    self.enableMarkerNameTickBox.tooltip = getText("Tooltip_MMS_EnableMarkerName");
+    self:addChild(self.enableMarkerNameTickBox);
+    self.enableMarkerNameTickBox:setSelected(1, true);
+    y = self.enableMarkerNameTickBox:getBottom() + CONST.ITEM_SPACING;
+
+    self.markerNameFontLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerFontName"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.markerNameFontLabel:initialise();
+    self.markerNameFontLabel:instantiate();
+    self:addChild(self.markerNameFontLabel);
+    self.markerNameFontComboBox = ISComboBox:new(self.markerTypeRadio:getX(), y, CONST.COORD_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT);
+    self.markerNameFontComboBox.font = UIFont.Small;
+    self.markerNameFontComboBox:initialise();
+    self.markerNameFontComboBox:instantiate();
+    self.markerNameFontComboBox:setWidthToOptions(150);
+    self:addChild(self.markerNameFontComboBox);
+
+    for i = 1, #MapMarkerSystem.FontList do
+        self.markerNameFontComboBox:addOption(MapMarkerSystem.FontList[i]);
+    end
+    y = self.markerNameFontLabel:getBottom() + CONST.ITEM_SPACING;
+
+
+    self.colorLabelMarkerName = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerNameColor"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.colorLabelMarkerName:initialise();
+    self.colorLabelMarkerName:instantiate();
+    self:addChild(self.colorLabelMarkerName);
+    self.colorPickerMarkerNameButton = ISButton:new(self.markerTypeRadio:getX(), y, CONST.COORD_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT, "", self, self.onPressedColorPickerMarkerNameBttn);
+    self.colorPickerMarkerNameButton:initialise();
+    self.colorPickerMarkerNameButton:instantiate();
+    self.colorPickerMarkerNameButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+    self.colorPickerMarkerNameButton:setTooltip(getText("Tooltip_MMS_MarkerNameColorPicker"));
+    self:addChild(self.colorPickerMarkerNameButton);
+
+    self.colorPickerMarkerName = ISColorPicker:new(0, 0)
+    self.colorPickerMarkerName:initialise()
+    self.colorPickerMarkerName.pickedTarget = self
+    self.colorPickerMarkerName.resetFocusTo = self
+    self.currentColorMarkerName = ColorInfo.new(1, 1, 1, 1);
+    self.colorPickerMarkerName:setInitialColor(self.currentColorMarkerName);
+    self.colorPickerMarkerName:addToUIManager();
+    self.colorPickerMarkerName:setVisible(false);
+    self.colorPickerMarkerName.otherFct = true;
+    self.colorPickerMarkerName.parent = self;
+    y = self.colorLabelMarkerName:getBottom() + CONST.ITEM_SPACING;
+
+    self.scaleNameLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerNameScale"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.scaleNameLabel:initialise();
+    self.scaleNameLabel:instantiate();
+    self.scaleNameEntryBox = ISTextEntryBox:new("1", self.markerTypeRadio:getX(), y, CONST.COORD_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT);
+    self.scaleNameEntryBox:initialise();
+    self.scaleNameEntryBox:instantiate();
+    self.scaleNameEntryBox:setOnlyNumbers(true);
+    self.scaleNameEntryBox:setTooltip(getText("Tooltip_MMS_NameScale"));
+    self:addChild(self.scaleNameLabel);
+    self:addChild(self.scaleNameEntryBox);
+    y = self.scaleNameLabel:getBottom() + CONST.ITEM_SPACING;
+
+
     -- Coordinates (NW/Center)
     self.locationLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Location"), 1, 1, 1, 1, CONST.FONT
         .MEDIUM, true);
@@ -323,7 +451,8 @@ function AddMarkerModal:createChildren()
     self.nwXLabel:initialise();
     self.nwXLabel:instantiate();
     self:addChild(self.nwXLabel);
-    self.nwXEntryBox = ISTextEntryBox:new("", self.nwXLabel:getRight() + CONST.ITEM_SPACING / 2, y, CONST.COORD_ENTRY_WIDTH,
+    self.nwXEntryBox = ISTextEntryBox:new("", self.nwXLabel:getRight() + CONST.ITEM_SPACING / 2, y,
+        CONST.COORD_ENTRY_WIDTH,
         CONST.ELEMENT_HEIGHT);
     self.nwXEntryBox:initialise();
     self.nwXEntryBox:instantiate();
@@ -335,14 +464,16 @@ function AddMarkerModal:createChildren()
     self.nwYLabel:initialise();
     self.nwYLabel:instantiate();
     self:addChild(self.nwYLabel);
-    self.nwYEntryBox = ISTextEntryBox:new("", self.nwYLabel:getRight() + CONST.ITEM_SPACING / 2, y, CONST.COORD_ENTRY_WIDTH,
+    self.nwYEntryBox = ISTextEntryBox:new("", self.nwYLabel:getRight() + CONST.ITEM_SPACING / 2, y,
+        CONST.COORD_ENTRY_WIDTH,
         CONST.ELEMENT_HEIGHT);
     self.nwYEntryBox:initialise();
     self.nwYEntryBox:instantiate();
     self.nwYEntryBox:setOnlyNumbers(true);
     self:addChild(self.nwYEntryBox);
 
-    self.pickNWButton = ISButton:new(self.nwYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT, CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickNWButton = ISButton:new(self.nwYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
+        CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
     self.pickNWButton:initialise();
     self.pickNWButton:instantiate();
     self.pickNWButton.internal = "PICK_NW";
@@ -358,7 +489,8 @@ function AddMarkerModal:createChildren()
     self.seXLabel:initialise();
     self.seXLabel:instantiate();
     self:addChild(self.seXLabel);
-    self.seXEntryBox = ISTextEntryBox:new("", self.seXLabel:getRight() + CONST.ITEM_SPACING / 2, y, CONST.COORD_ENTRY_WIDTH,
+    self.seXEntryBox = ISTextEntryBox:new("", self.seXLabel:getRight() + CONST.ITEM_SPACING / 2, y,
+        CONST.COORD_ENTRY_WIDTH,
         CONST.ELEMENT_HEIGHT);
     self.seXEntryBox:initialise();
     self.seXEntryBox:instantiate();
@@ -370,14 +502,16 @@ function AddMarkerModal:createChildren()
     self.seYLabel:initialise();
     self.seYLabel:instantiate();
     self:addChild(self.seYLabel);
-    self.seYEntryBox = ISTextEntryBox:new("", self.seYLabel:getRight() + CONST.ITEM_SPACING / 2, y, CONST.COORD_ENTRY_WIDTH,
+    self.seYEntryBox = ISTextEntryBox:new("", self.seYLabel:getRight() + CONST.ITEM_SPACING / 2, y,
+        CONST.COORD_ENTRY_WIDTH,
         CONST.ELEMENT_HEIGHT);
     self.seYEntryBox:initialise();
     self.seYEntryBox:instantiate();
     self.seYEntryBox:setOnlyNumbers(true);
     self:addChild(self.seYEntryBox);
 
-    self.pickSEButton = ISButton:new(self.seYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT, CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
+    self.pickSEButton = ISButton:new(self.seYEntryBox:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
+        CONST.ELEMENT_HEIGHT, "", self, self.onClickPickLocation);
     self.pickSEButton:initialise();
     self.pickSEButton:instantiate();
     self.pickSEButton.internal = "PICK_SE";
@@ -392,14 +526,17 @@ function AddMarkerModal:createChildren()
         CONST.FONT.MEDIUM, true);
     self.textureLabel:initialise();
     self.textureLabel:instantiate();
-    self.textureEntryBox = ISTextEntryBox:new("", self.markerTypeRadio:getX(), y, CONST.ENTRY_WIDTH, CONST.ELEMENT_HEIGHT);
+    self:addChild(self.textureLabel);
+    self.textureEntryBox = ISTextEntryBox:new("", self.markerTypeRadio:getX(), y, CONST.ENTRY_WIDTH, CONST
+        .ELEMENT_HEIGHT);
     self.textureEntryBox:initialise();
     self.textureEntryBox:instantiate();
-    self:addChild(self.textureLabel);
+    self.textureEntryBox:setTooltip(getText("Tooltip_MMS_TexturePath"));
     self:addChild(self.textureEntryBox);
     y = self.textureLabel:getBottom() + CONST.ITEM_SPACING;
 
-    self.scaleLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Scale"), 1, 1, 1, 1, CONST.FONT.MEDIUM,
+    self.scaleLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerScale"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM,
         true);
     self.scaleLabel:initialise();
     self.scaleLabel:instantiate();
@@ -415,29 +552,31 @@ function AddMarkerModal:createChildren()
 
 
     -- Rectangle and Area specific controls
-    self.colorLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Color"), 1, 1, 1, 1, CONST.FONT.MEDIUM,
+    self.colorLabelMarker = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerColor"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM,
         true);
-    self.colorLabel:initialise();
-    self.colorLabel:instantiate();
-    self.colorPickerButton = ISButton:new(self.markerTypeRadio:getX(), y, CONST.COORD_ENTRY_WIDTH, CONST.ELEMENT_HEIGHT,
-        "", self, self.onColorPicker);
-    self.colorPickerButton:initialise();
-    self.colorPickerButton:instantiate();
-    self.colorPickerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
-    self:addChild(self.colorLabel);
-    self:addChild(self.colorPickerButton);
+    self.colorLabelMarker:initialise();
+    self.colorLabelMarker:instantiate();
+    self.colorPickerMarkerButton = ISButton:new(self.markerTypeRadio:getX(), y, CONST.COORD_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT,
+        "", self, self.onPressedColorPickerMarkerBttn);
+    self.colorPickerMarkerButton:initialise();
+    self.colorPickerMarkerButton:instantiate();
+    self.colorPickerMarkerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+    self:addChild(self.colorLabelMarker);
+    self:addChild(self.colorPickerMarkerButton);
 
-    self.colorPicker = ISColorPicker:new(0, 0)
-    self.colorPicker:initialise()
-    self.colorPicker.pickedTarget = self
-    self.colorPicker.resetFocusTo = self
-    self.currentColor = ColorInfo.new(1, 1, 1, 1);
-    self.colorPicker:setInitialColor(self.currentColor);
-    self.colorPicker:addToUIManager();
-    self.colorPicker:setVisible(false);
-    self.colorPicker.otherFct = true;
-    self.colorPicker.parent = self;
-    y = self.colorLabel:getBottom() + CONST.ITEM_SPACING;
+    self.colorPickerMarker = ISColorPicker:new(0, 0)
+    self.colorPickerMarker:initialise()
+    self.colorPickerMarker.pickedTarget = self
+    self.colorPickerMarker.resetFocusTo = self
+    self.currentColorMarker = ColorInfo.new(1, 1, 1, 1);
+    self.colorPickerMarker:setInitialColor(self.currentColorMarker);
+    self.colorPickerMarker:addToUIManager();
+    self.colorPickerMarker:setVisible(false);
+    self.colorPickerMarker.otherFct = true;
+    self.colorPickerMarker.parent = self;
+    y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
 
     -- Add Fixed Scale control
     self.lockZoomTickBox = ISTickBox:new(x, y, CONST.COORD_ENTRY_WIDTH, CONST.ELEMENT_HEIGHT);
@@ -482,19 +621,34 @@ function AddMarkerModal:createChildren()
     self:onMarkerTypeChanged(nil, 1);
 end
 
-function AddMarkerModal:onColorPicker(button)
-    self.colorPicker:setX(getMouseX() - 100);
-    self.colorPicker:setY(getMouseY() - 20);
-    self.colorPicker.pickedFunc = self.onPickedColor;
-    self.colorPicker:setVisible(true);
-    self.colorPicker:bringToTop();
+function AddMarkerModal:onPressedColorPickerMarkerBttn(button)
+    self.colorPickerMarker:setX(getMouseX() - 100);
+    self.colorPickerMarker:setY(getMouseY() - 20);
+    self.colorPickerMarker.pickedFunc = self.onPickedMarkerColor;
+    self.colorPickerMarker:setVisible(true);
+    self.colorPickerMarker:bringToTop();
 end
 
-function AddMarkerModal:onPickedColor(color, mouseUp)
-    self.currentColor = ColorInfo.new(color.r, color.g, color.b, 1);
-    self.colorPickerButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
-    self.colorLabel:setColor(color.r, color.g, color.b);
-    self.colorPicker:setVisible(false);
+function AddMarkerModal:onPickedMarkerColor(color, mouseUp)
+    self.currentColorMarker = ColorInfo.new(color.r, color.g, color.b, 1);
+    self.colorPickerMarkerButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
+    self.colorLabelMarker:setColor(color.r, color.g, color.b);
+    self.colorPickerMarker:setVisible(false);
+end
+
+function AddMarkerModal:onPressedColorPickerMarkerNameBttn(button)
+    self.colorPickerMarkerName:setX(getMouseX() - 100);
+    self.colorPickerMarkerName:setY(getMouseY() - 20);
+    self.colorPickerMarkerName.pickedFunc = self.onPickedMarkerNameColor;
+    self.colorPickerMarkerName:setVisible(true);
+    self.colorPickerMarkerName:bringToTop();
+end
+
+function AddMarkerModal:onPickedMarkerNameColor(color, mouseUp)
+    self.currentColorMarkerName = ColorInfo.new(color.r, color.g, color.b, 1);
+    self.colorPickerMarkerNameButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
+    self.colorLabelMarkerName:setColor(color.r, color.g, color.b);
+    self.colorPickerMarkerName:setVisible(false);
 end
 
 local function textureExists(texture)
@@ -551,7 +705,7 @@ function AddMarkerModal:validateInputs()
             end
         end
 
-        local scale = tonumber(self.scaleEntryBox:getText()) or 0;
+        local scale = tonumber(self.scaleEntryBox:getText()) or 1;
         if scale <= 0 then
             isValid = false;
             tooltip = tooltip .. getText("Tooltip_MMS_InvalidScale") .. "\n";
@@ -578,7 +732,7 @@ function AddMarkerModal:validateInputs()
         end
     end
 
-    local zoom = tonumber(self.maxZoomEntryBox:getText()) or -1;
+    local zoom = tonumber(self.maxZoomEntryBox:getText()) or 100;
     if zoom <= 0 then
         isValid = false;
         tooltip = tooltip .. getText("Tooltip_MMS_InvalidZoom") .. "\n";
@@ -592,8 +746,8 @@ function AddMarkerModal:validateInputs()
     self.okButton:setEnable(isValid);
 end
 
-function AddMarkerModal:prerender()
-    ISPanelJoypad.prerender(self);
+function AddMarkerModal:render()
+    ISPanelJoypad.render(self);
     self:validateInputs();
 end
 
@@ -619,6 +773,10 @@ function AddMarkerModal:onClick(button)
             data.scale = tonumber(self.scaleEntryBox:getText());
             data.lockZoom = self.lockZoomTickBox:isSelected(1);
         elseif self.currentType == "area" then
+            data.isNameEnabled = self.enableMarkerNameTickBox:isSelected(1);
+            data.colorName = self.colorPickerMarkerNameButton.backgroundColor;
+            data.scaleName = tonumber(self.scaleNameEntryBox:getText());
+            data.nameFont = self.markerNameFontComboBox:getSelectedText() or MapMarkerSystem.FontList[1];
             data.coordinates = {
                 nw = {
                     x = tonumber(self.nwXEntryBox:getText()),
@@ -629,8 +787,12 @@ function AddMarkerModal:onClick(button)
                     y = tonumber(self.seYEntryBox:getText())
                 }
             };
-            data.color = self.colorPickerButton.backgroundColor;
+            data.color = self.colorPickerMarkerButton.backgroundColor;
         elseif self.currentType == "rectangle" then
+            data.isNameEnabled = self.enableMarkerNameTickBox:isSelected(1);
+            data.colorName = self.colorPickerMarkerNameButton.backgroundColor;
+            data.scaleName = tonumber(self.scaleNameEntryBox:getText());
+            data.nameFont = self.markerNameFontComboBox and self.markerNameFontComboBox.selected or 1;
             data.coordinates = {
                 center = {
                     x = tonumber(self.nwXEntryBox:getText()),
@@ -639,7 +801,7 @@ function AddMarkerModal:onClick(button)
                 width = tonumber(self.seXEntryBox:getText()),
                 height = tonumber(self.seYEntryBox:getText())
             };
-            data.color = self.colorPickerButton.backgroundColor;
+            data.color = self.colorPickerMarkerButton.backgroundColor;
             data.scale = tonumber(self.scaleEntryBox:getText());
             data.lockZoom = self.lockZoomTickBox:isSelected(1);
         end

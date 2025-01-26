@@ -10,16 +10,24 @@ IGUI_EN = {
     IGUI_MMS_RectangleMarker = "Rectangle Marker",
     IGUI_MMS_AreaMarker = "Area Marker",
 
-    IGUI_MMS_Color = "Color",
+    IGUI_MMS_MarkerColor = "Marker Color:",
     IGUI_MMS_FixedScale = "Fixed-scale marker",
-    IGUI_MMS_MaxZoom = "Max Zoom",
+    IGUI_MMS_MaxZoom = "Max Zoom:",
 
     IGUI_MMS_Teleport = "Teleport to Selected",
     IGUI_MMS_Delete = "Delete Selected",
 
-    IGUI_MMS_Enabled = "Enabled",
+    IGUI_MMS_EnableMarker = "Enable marker",
 
     IGUI_MMS_Name = "Name:",
+    IGUI_MMS_EnableMarkerName = "Marker name enabled",
+    IGUI_MMS_MarkerFontName = "Font Name:",
+    IGUI_MMS_MarkerNameColor = "Name Color:",
+    IGUI_MMS_MarkerNameScale = "Name Scale:",
+
+    IGUI_MMS_MarkerScale = "Marker Scale:",
+    IGUI_MMS_Texture = "Texture:",
+
     IGUI_MMS_Location = "Location:",
 
     IGUI_MMS_xCoord = "x%1:",
@@ -27,9 +35,6 @@ IGUI_EN = {
 
     IGUI_MMS_wMarker = "w:",
     IGUI_MMS_hMarker = "h:",
-
-    IGUI_MMS_Scale = "Scale:",
-    IGUI_MMS_Texture = "Texture:",
 
     IGUI_MMS_Close = "Close",
     IGUI_MMS_Cancel = "Cancel",

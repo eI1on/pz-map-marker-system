@@ -1,0 +1,13 @@
+26 JAN 24
+
+Changelog:
+[list]
+[*] Added options for: 
+[list]
+[*] - enable/disable the marker name next to the marker
+[*] - color for the marker name
+[*] - selection for different marker name fonts
+[*] - marker name scaling
+[list]
+[*] Some markers might need deleted and remade for all the new options to show in the panel
+[/list]

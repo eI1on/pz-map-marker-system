@@ -119,8 +119,13 @@ function MapMarkerSystem.renderAreaMarker(self, marker)
     end
 
     self:setStencilRect(0, 0, self.width, self.height);
-    if marker.name then
-        self:drawText(marker.name, uiNWX + 10, uiNWY - 15, 0, 0, 0, 1, UIFont.Small);
+    if marker.name and marker.isNameEnabled then
+        local markerNameScale = marker.scaleName or 1;
+        local markerFont = UIFont[marker.nameFont or MapMarkerSystem.FontList[1]];
+        local markernameColor = marker.colorName or { r = 0.0, g = 0.0, b = 0.0, a = 1.0 };
+        local textHeight = getTextManager():MeasureStringY(markerFont, marker.name);
+        self:drawTextZoomed(marker.name, uiNWX + 10, uiNWY - textHeight, markerNameScale, markernameColor.r,
+            markernameColor.g, markernameColor.b, markernameColor.a, markerFont);
     end
 
     drawLine(uiNWX, uiNWY, uiNEX, uiNEY, marker.color.r, marker.color.g, marker.color.b, 1);
@@ -166,10 +171,15 @@ function MapMarkerSystem.renderRectangleMarker(self, marker)
     self:setStencilRect(0, 0, self.width, self.height);
     self:drawRect(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, marker.color.a, marker.color.r,
         marker.color.g, marker.color.b);
-    self:drawRectBorder(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, 1, borderColor.r, borderColor.g, borderColor.b);
-    if marker.name then
-        local textHeight = getTextManager():MeasureStringY(UIFont.Small, marker.name);
-        self:drawText(marker.name, uiX + halfWidth + 5, uiY - textHeight / 2, 0, 0, 0, 1, UIFont.Small);
+    self:drawRectBorder(uiX - halfWidth, uiY - halfHeight, markerWidth, markerHeight, 1, borderColor.r, borderColor.g,
+        borderColor.b);
+    if marker.name and marker.isNameEnabled then
+        local markerNameScale = marker.scaleName or 1;
+        local markerFont = UIFont[marker.nameFont or MapMarkerSystem.FontList[1]];
+        local markernameColor = marker.colorName or { r = 0.0, g = 0.0, b = 0.0, a = 1.0 };
+        local textHeight = getTextManager():MeasureStringY(markerFont, marker.name) * markerNameScale;
+        self:drawTextZoomed(marker.name, uiX + halfWidth + 5, uiY - textHeight / 2, markerNameScale, markernameColor.r,
+            markernameColor.g, markernameColor.b, markernameColor.a, markerFont);
     end
     self:clearStencilRect();
 end

@@ -17,6 +17,7 @@ defaultMarkers = {
         name = "Rectangle_Marker",
         markerType = "rectangle",
         isEnabled = true,
+        isNameEnabled = true,
         coordinates = {
             center = { x = -1, y = -1 }, -- Center coordinate
             width = 100,                 -- Width of the rectangle
@@ -28,7 +29,15 @@ defaultMarkers = {
             b = 1.0,
             a = 1.0
         },
+        colorName = {
+            r = 0.0,
+            g = 0.0,
+            b = 0.0,
+            a = 1.0
+        },
         scale = 1,
+        scaleName = 1,
+        nameFont = "Small",
         lockZoom = true,
         maxZoomLevel = 100
     },
@@ -36,6 +45,7 @@ defaultMarkers = {
         name = "Area_Marker",
         markerType = "area",
         isEnabled = true,
+        isNameEnabled = true,
         coordinates = {
             nw = { x = -1, y = -1 }, -- Northwest corner
             se = { x = -1, y = -1 }  -- Southeast corner
@@ -46,6 +56,14 @@ defaultMarkers = {
             b = 1.0,
             a = 1.0
         },
+        colorName = {
+            r = 0.0,
+            g = 0.0,
+            b = 0.0,
+            a = 1.0
+        },
+        scaleName = 1,
+        nameFont = "Small",
         maxZoomLevel = 100
     }
 };

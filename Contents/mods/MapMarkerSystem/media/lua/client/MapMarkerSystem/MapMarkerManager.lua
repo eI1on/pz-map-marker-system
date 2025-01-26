@@ -10,7 +10,7 @@ local CONST = {
     PADDING = 10,
     ELEMENT_HEIGHT = 25,
     WINDOW_WIDTH = 350,
-    WINDOW_HEIGHT = 600,
+    WINDOW_HEIGHT = 750,
     LABEL_WIDTH = 80,
     ENTRY_WIDTH = 200,
     NUMBER_ENTRY_WIDTH = 50,
@@ -129,7 +129,8 @@ function MapMarkerManager:createChildren()
     self.markerTypeLabel:instantiate();
     self:addChild(self.markerTypeLabel);
 
-    self.markerTypeValLabel = ISLabel:new(self.markerTypeLabel:getRight() + CONST.ITEM_SPACING, y, CONST.ELEMENT_HEIGHT,
+    self.markerTypeValLabel = ISLabel:new(self.markerTypeLabel:getRight() + CONST.SECTION_SPACING, y,
+        CONST.ELEMENT_HEIGHT,
         "", 1, 1, 1, 1,
         UIFont.Medium, true);
     self.markerTypeValLabel:initialise();
@@ -157,12 +158,87 @@ function MapMarkerManager:createChildren()
     self.enableMarkerTickBox = ISTickBox:new(x, y, CONST.ENTRY_WIDTH, CONST.ELEMENT_HEIGHT, "", self,
         MapMarkerManager.onTickBoxEnableMarkerOption);
     self.enableMarkerTickBox:initialise();
-    self.enableMarkerTickBox:addOption(getText("IGUI_MMS_Enabled"));
+    self.enableMarkerTickBox:addOption(getText("IGUI_MMS_EnableMarker"));
     self.enableMarkerTickBox:setFont(UIFont.Medium);
     self.enableMarkerTickBox:setWidthToFit();
     self.enableMarkerTickBox.tooltip = getText("Tooltip_MMS_EnableMarker");
     self:addChild(self.enableMarkerTickBox);
     y = self.enableMarkerTickBox:getBottom() + CONST.ITEM_SPACING;
+
+    -- Name control
+    self.enableMarkerNameTickBox = ISTickBox:new(x, y, CONST.NUMBER_ENTRY_WIDTH, CONST.ELEMENT_HEIGHT, "", self,
+        MapMarkerManager.onTickBoxEnableMarkerNameOption);
+    self.enableMarkerNameTickBox:initialise();
+    self.enableMarkerNameTickBox:addOption(getText("IGUI_MMS_EnableMarkerName"));
+    self.enableMarkerNameTickBox:setFont(UIFont.Medium);
+    self.enableMarkerNameTickBox:setWidthToFit();
+    self.enableMarkerNameTickBox.tooltip = getText("Tooltip_MMS_EnableMarkerName");
+    self:addChild(self.enableMarkerNameTickBox);
+    y = self.enableMarkerNameTickBox:getBottom() + CONST.ITEM_SPACING;
+
+
+    self.markerNameFontLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerFontName"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.markerNameFontLabel:initialise();
+    self.markerNameFontLabel:instantiate();
+    self:addChild(self.markerNameFontLabel);
+    self.markerNameFontComboBox = ISComboBox:new(self.markerTypeValLabel:getX(), y, CONST.NUMBER_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT);
+    self.markerNameFontComboBox.font = UIFont.Small;
+    self.markerNameFontComboBox:initialise();
+    self.markerNameFontComboBox:instantiate();
+    self.markerNameFontComboBox:setWidthToOptions(150);
+    self.markerNameFontComboBox.onChange = self.onChangeMarkerNameFont;
+    self.markerNameFontComboBox.target = self;
+    self:addChild(self.markerNameFontComboBox);
+
+    for i = 1, #MapMarkerSystem.FontList do
+        self.markerNameFontComboBox:addOption(MapMarkerSystem.FontList[i]);
+    end
+    y = self.markerNameFontLabel:getBottom() + CONST.ITEM_SPACING;
+
+
+    self.colorLabelMarkerName = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerNameColor"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.colorLabelMarkerName:initialise();
+    self.colorLabelMarkerName:instantiate();
+    self:addChild(self.colorLabelMarkerName);
+    self.colorPickerMarkerNameButton = ISButton:new(self.markerTypeValLabel:getX(), y, CONST.NUMBER_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT, "", self, self.onPressedColorPickerMarkerNameBttn);
+    self.colorPickerMarkerNameButton:initialise();
+    self.colorPickerMarkerNameButton:instantiate();
+    self.colorPickerMarkerNameButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+    self.colorPickerMarkerNameButton:setTooltip(getText("Tooltip_MMS_MarkerNameColorPicker"));
+    self:addChild(self.colorPickerMarkerNameButton);
+
+    self.colorPickerMarkerName = ISColorPicker:new(0, 0)
+    self.colorPickerMarkerName:initialise()
+    self.colorPickerMarkerName.pickedTarget = self
+    self.colorPickerMarkerName.resetFocusTo = self
+    self.currentColorMarkerName = ColorInfo.new(1, 1, 1, 1);
+    self.colorPickerMarkerName:setInitialColor(self.currentColorMarkerName);
+    self.colorPickerMarkerName:addToUIManager();
+    self.colorPickerMarkerName:setVisible(false);
+    self.colorPickerMarkerName.otherFct = true;
+    self.colorPickerMarkerName.parent = self;
+    y = self.colorLabelMarkerName:getBottom() + CONST.ITEM_SPACING;
+
+    self.scaleNameLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerNameScale"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.scaleNameLabel:initialise();
+    self.scaleNameLabel:instantiate();
+    self.scaleNameEntryBox = ISTextEntryBox:new("1", self.markerTypeValLabel:getX(), y, CONST.NUMBER_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT);
+    self.scaleNameEntryBox:initialise();
+    self.scaleNameEntryBox:instantiate();
+    self.scaleNameEntryBox.onTextChange = self.onScaleInputChange;
+    self.scaleNameEntryBox.scaleType = "scaleName";
+    -- self.scaleNameEntryBox:setOnlyNumbers(true);
+    self.scaleNameEntryBox:setTooltip(getText("Tooltip_MMS_NameScale"));
+    self:addChild(self.scaleNameLabel);
+    self:addChild(self.scaleNameEntryBox);
+    y = self.scaleNameLabel:getBottom() + CONST.ITEM_SPACING;
+
 
     -- Coordinates (NW/Center)
     self.locationLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Location"), 1, 1, 1, 1,
@@ -266,34 +342,34 @@ function MapMarkerManager:createChildren()
     y = self.textureLabel:getBottom() + CONST.ITEM_SPACING;
 
     -- Rectangle and Area specific controls
-    self.colorLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Color"), 1, 1, 1, 1, CONST.FONT.MEDIUM,
-        true);
-    self.colorLabel:initialise();
-    self.colorLabel:instantiate();
-    self:addChild(self.colorLabel);
-    self.colorPickerButton = ISButton:new(self.markerTypeValLabel:getX(), y, CONST.NUMBER_ENTRY_WIDTH,
-        CONST.ELEMENT_HEIGHT,
-        "", self, self.onColorPicker);
-    self.colorPickerButton:initialise();
-    self.colorPickerButton:instantiate();
-    self.colorPickerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
-    self:addChild(self.colorPickerButton);
+    self.colorLabelMarker = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerColor"), 1, 1, 1, 1,
+        CONST.FONT.MEDIUM, true);
+    self.colorLabelMarker:initialise();
+    self.colorLabelMarker:instantiate();
+    self:addChild(self.colorLabelMarker);
+    self.colorPickerMarkerButton = ISButton:new(self.markerTypeValLabel:getX(), y, CONST.NUMBER_ENTRY_WIDTH,
+        CONST.ELEMENT_HEIGHT, "", self, self.onPressedColorPickerMarkerBttn);
+    self.colorPickerMarkerButton:initialise();
+    self.colorPickerMarkerButton:instantiate();
+    self.colorPickerMarkerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+    self:addChild(self.colorPickerMarkerButton);
 
-    self.colorPicker = ISColorPicker:new(0, 0)
-    self.colorPicker:initialise()
-    self.colorPicker.pickedTarget = self
-    self.colorPicker.resetFocusTo = self
-    self.currentColor = ColorInfo.new(1, 1, 1, 1);
-    self.colorPicker:setInitialColor(self.currentColor);
-    self.colorPicker:addToUIManager();
-    self.colorPicker:setVisible(false);
-    self.colorPicker.otherFct = true;
-    self.colorPicker.parent = self;
-    y = self.colorLabel:getBottom() + CONST.ITEM_SPACING;
+    self.colorPickerMarker = ISColorPicker:new(0, 0)
+    self.colorPickerMarker:initialise()
+    self.colorPickerMarker.pickedTarget = self
+    self.colorPickerMarker.resetFocusTo = self
+    self.currentColorMarker = ColorInfo.new(1, 1, 1, 1);
+    self.colorPickerMarker:setInitialColor(self.currentColorMarker);
+    self.colorPickerMarker:addToUIManager();
+    self.colorPickerMarker:setVisible(false);
+    self.colorPickerMarker.otherFct = true;
+    self.colorPickerMarker.parent = self;
+    y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
 
 
     -- Scale
-    self.scaleLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_Scale"), 1, 1, 1, 1, UIFont.Medium, true);
+    self.scaleLabel = ISLabel:new(x, y, CONST.ELEMENT_HEIGHT, getText("IGUI_MMS_MarkerScale"), 1, 1, 1, 1, UIFont.Medium,
+        true);
     self.scaleLabel:initialise();
     self:addChild(self.scaleLabel);
 
@@ -302,7 +378,9 @@ function MapMarkerManager:createChildren()
     self.scaleEntryBox:initialise();
     self.scaleEntryBox:instantiate();
     self.scaleEntryBox.onTextChange = self.onScaleInputChange;
-    self.scaleEntryBox:setOnlyNumbers(true);
+    self.scaleEntryBox.scaleType = "scale";
+    -- self.scaleEntryBox:setOnlyNumbers(true);
+    self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
     self:addChild(self.scaleEntryBox);
     y = self.scaleLabel:getBottom() + CONST.ITEM_SPACING;
 
@@ -351,19 +429,18 @@ function MapMarkerManager:createChildren()
     self.refresh = 3;
 end
 
-function MapMarkerManager:onColorPicker(button)
-    self.colorPicker:setX(getMouseX() - 100);
-    self.colorPicker:setY(getMouseY() - 20);
-    self.colorPicker.pickedFunc = self.onPickedColor;
-    self.colorPicker:setVisible(true);
-    self.colorPicker:bringToTop();
+function MapMarkerManager:onPressedColorPickerMarkerBttn(button)
+    self.colorPickerMarker:setX(getMouseX() - 100);
+    self.colorPickerMarker:setY(getMouseY() - 20);
+    self.colorPickerMarker.pickedFunc = self.onPickedMarkerColor;
+    self.colorPickerMarker:setVisible(true);
+    self.colorPickerMarker:bringToTop();
 end
 
-function MapMarkerManager:onPickedColor(color, mouseUp)
-    self.currentColor = ColorInfo.new(color.r, color.g, color.b, 1);
-    self.colorPickerButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
-    self.colorLabel:setColor(color.r, color.g, color.b);
-    self.colorPicker:setVisible(false);
+function MapMarkerManager:onPickedMarkerColor(color, mouseUp)
+    self.currentColorMarker = ColorInfo.new(color.r, color.g, color.b, 1);
+    self.colorPickerMarkerButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
+    self.colorPickerMarker:setVisible(false);
 
     local selectedMapMarkerIdx = self:getMapMarkerIdx();
     local mapMarkerData = MapMarkerSystem.MapMarkers[selectedMapMarkerIdx];
@@ -373,6 +450,32 @@ function MapMarkerManager:onPickedColor(color, mouseUp)
         {
             selectedIdx = selectedMapMarkerIdx,
             newKey = "color",
+            newValue = { r = color.r, g = color.g, b = color.b, a = 1 },
+        }
+    );
+end
+
+function MapMarkerManager:onPressedColorPickerMarkerNameBttn(button)
+    self.colorPickerMarkerName:setX(getMouseX() - 100);
+    self.colorPickerMarkerName:setY(getMouseY() - 20);
+    self.colorPickerMarkerName.pickedFunc = self.onPickedMarkerNameColor;
+    self.colorPickerMarkerName:setVisible(true);
+    self.colorPickerMarkerName:bringToTop();
+end
+
+function MapMarkerManager:onPickedMarkerNameColor(color, mouseUp)
+    self.currentColorMarkerName = ColorInfo.new(color.r, color.g, color.b, 1);
+    self.colorPickerMarkerNameButton.backgroundColor = { r = color.r, g = color.g, b = color.b, a = 1 };
+    self.colorPickerMarkerName:setVisible(false);
+
+    local selectedMapMarkerIdx = self:getMapMarkerIdx();
+    local mapMarkerData = MapMarkerSystem.MapMarkers[selectedMapMarkerIdx];
+    if not selectedMapMarkerIdx or not mapMarkerData then return; end
+
+    sendClientCommand("MapMarkerSystem", "EditMarkerData",
+        {
+            selectedIdx = selectedMapMarkerIdx,
+            newKey = "colorName",
             newValue = { r = color.r, g = color.g, b = color.b, a = 1 },
         }
     );
@@ -441,6 +544,38 @@ function MapMarkerManager:onTickBoxEnableMarkerOption(index, selected)
     });
 end
 
+function MapMarkerManager:onTickBoxEnableMarkerNameOption(index, selected)
+    local selectedMapMarkerIdx = self:getMapMarkerIdx();
+
+    local mapMarkerData = MapMarkerSystem.MapMarkers[selectedMapMarkerIdx];
+    if not mapMarkerData then return; end
+
+    mapMarkerData.isNameEnabled = selected;
+
+    self.enableMarkerNameTickBox.selected[index] = selected;
+
+    sendClientCommand("MapMarkerSystem", "EditMarkerData", {
+        selectedIdx = self:getMapMarkerIdx(),
+        newKey = "isNameEnabled",
+        newValue = selected
+    });
+end
+
+function MapMarkerManager:onChangeMarkerNameFont(comboBox, arg1, arg2)
+    local selectedFont = comboBox:getSelectedText();
+    if not selectedFont then return; end
+
+    local selectedMapMarkerIdx = self:getMapMarkerIdx();
+    local mapMarkerData = MapMarkerSystem.MapMarkers[selectedMapMarkerIdx];
+    if not mapMarkerData then return; end
+
+    sendClientCommand("MapMarkerSystem", "EditMarkerData", {
+        selectedIdx = self:getMapMarkerIdx(),
+        newKey = "nameFont",
+        newValue = selectedFont
+    });
+end
+
 function MapMarkerManager:onTickBoxFixedScaleOption(index, selected)
     local selectedMapMarkerIdx = self:getMapMarkerIdx();
 
@@ -488,16 +623,16 @@ function MapMarkerManager:onScaleInputChange()
     local mapMarkerData = MapMarkerSystem.MapMarkers[selectedMapMarkerIdx];
     if not mapMarkerData then return; end
 
-    mapMarkerData.scale = tonumber(scaleVal) and tonumber(scaleVal) or mapMarkerData.scale;
+    mapMarkerData[self.scaleType] = tonumber(scaleVal) and tonumber(scaleVal) or mapMarkerData[self.scaleType];
 
     sendClientCommand("MapMarkerSystem", "EditMarkerData",
         {
             selectedIdx = selectedMapMarkerIdx,
-            newKey = "scale",
-            newValue = mapMarkerData.scale
+            newKey = self.scaleType,
+            newValue = mapMarkerData[self.scaleType]
         }
     );
-    self.parent.scaleEntryBox:setText(tostring(mapMarkerData.scale));
+    self:setText(tostring(mapMarkerData[self.scaleType]));
 end
 
 function MapMarkerManager:onMaxZoomInputChange()
@@ -629,6 +764,23 @@ function MapMarkerManager:updateElementsPositions(markerData)
     self.enableMarkerTickBox:setY(y);
     y = self.enableMarkerTickBox:getBottom() + CONST.ITEM_SPACING;
 
+    if markerData.markerType == "rectangle" or markerData.markerType == "area" then
+        self.enableMarkerNameTickBox:setY(y);
+        y = self.enableMarkerNameTickBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.markerNameFontLabel:setY(y);
+        self.markerNameFontComboBox:setY(y);
+        y = self.markerNameFontComboBox:getBottom() + CONST.ITEM_SPACING;
+
+        self.colorLabelMarkerName:setY(y);
+        self.colorPickerMarkerNameButton:setY(y);
+        y = self.colorLabelMarkerName:getBottom() + CONST.ITEM_SPACING;
+
+        self.scaleNameLabel:setY(y);
+        self.scaleNameEntryBox:setY(y);
+        y = self.scaleNameLabel:getBottom() + CONST.ITEM_SPACING;
+    end
+
     self.locationLabel:setY(y);
     self.nwXLabel:setY(y);
     self.nwYLabel:setY(y);
@@ -655,9 +807,9 @@ function MapMarkerManager:updateElementsPositions(markerData)
         self.seYEntryBox:setY(y);
         y = self.seXLabel:getBottom() + CONST.ITEM_SPACING;
 
-        self.colorLabel:setY(y);
-        self.colorPickerButton:setY(y);
-        y = self.colorLabel:getBottom() + CONST.ITEM_SPACING;
+        self.colorLabelMarker:setY(y);
+        self.colorPickerMarkerButton:setY(y);
+        y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
 
         self.scaleLabel:setY(y);
         self.scaleEntryBox:setY(y);
@@ -679,9 +831,9 @@ function MapMarkerManager:updateElementsPositions(markerData)
         self.scaleEntryBox:setVisible(false);
         self.lockZoomTickBox:setVisible(false);
 
-        self.colorLabel:setY(y);
-        self.colorPickerButton:setY(y);
-        y = self.colorPickerButton:getBottom() + CONST.ITEM_SPACING;
+        self.colorLabelMarker:setY(y);
+        self.colorPickerMarkerButton:setY(y);
+        y = self.colorLabelMarker:getBottom() + CONST.ITEM_SPACING;
     end
 
     self.maxZoomLabel:setY(y);
@@ -696,6 +848,14 @@ function MapMarkerManager:populateElementsDetails(markerData)
 
     self.enableMarkerTickBox:setSelected(1, false);
 
+    self.enableMarkerNameTickBox:setSelected(1, false);
+    self.markerNameFontComboBox:select(MapMarkerSystem.FontList[1]);
+
+    self.colorPickerMarkerNameButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
+
+    self.scaleNameEntryBox:setText("");
+    self.scaleNameEntryBox:setEditable(false);
+
     self.nwXEntryBox:setText("");
     self.nwXEntryBox:setEditable(false);
     self.nwYEntryBox:setText("");
@@ -709,8 +869,7 @@ function MapMarkerManager:populateElementsDetails(markerData)
     self.textureEntryBox:setText("");
     self.textureEntryBox:setEditable(false);
 
-    self.colorPickerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
-    self.colorLabel:setColor(1, 1, 1);
+    self.colorPickerMarkerButton.backgroundColor = { r = 1, g = 1, b = 1, a = 1 };
 
     self.scaleEntryBox:setText("");
     self.scaleEntryBox:setEditable(false);
@@ -723,13 +882,20 @@ function MapMarkerManager:populateElementsDetails(markerData)
     local componentsToHide = {
         'markerTypeLabel', 'markerTypeValLabel',
         'markerNameLabel', 'markerNameEntryBox',
-        'enableMarkerTickBox', 'locationLabel',
+        'enableMarkerTickBox',
+
+        'enableMarkerNameTickBox',
+        'markerNameFontLabel', 'markerNameFontComboBox',
+        'colorLabelMarkerName', 'colorPickerMarkerNameButton',
+        'scaleNameLabel', 'scaleNameEntryBox',
+
+        'locationLabel',
         'nwXLabel', 'nwXEntryBox',
         'nwYLabel', 'nwYEntryBox', 'pickNWButton',
         'seXLabel', 'seXEntryBox',
         'seYLabel', 'seYEntryBox', 'pickSEButton',
         'textureLabel', 'textureEntryBox',
-        'colorLabel', 'colorPickerButton',
+        'colorLabelMarker', 'colorPickerMarkerButton',
         'scaleLabel', 'scaleEntryBox',
         'lockZoomTickBox',
         'maxZoomLabel', 'maxZoomEntryBox'
@@ -797,6 +963,23 @@ function MapMarkerManager:populateElementsDetails(markerData)
             self.lockZoomTickBox:setVisible(true);
         end,
         ["rectangle"] = function()
+            self.enableMarkerNameTickBox:setSelected(1, markerData.isNameEnabled or false);
+            self.enableMarkerNameTickBox:setVisible(true);
+
+            self.markerNameFontLabel:setVisible(true);
+
+            self.markerNameFontComboBox:select(markerData.nameFont or MapMarkerSystem.FontList[1]);
+            self.markerNameFontComboBox:setVisible(true);
+
+            self.colorPickerMarkerNameButton.backgroundColor = markerData.colorName or { r = 1, g = 1, b = 1, a = 1 };
+            self.colorLabelMarkerName:setVisible(true);
+            self.colorPickerMarkerNameButton:setVisible(true);
+
+            self.scaleNameEntryBox:setText(tostring(markerData.scaleName or ""));
+            self.scaleNameEntryBox:setEditable(true);
+            self.scaleNameLabel:setVisible(true);
+            self.scaleNameEntryBox:setVisible(true);
+
             local center = markerData.coordinates.center or { x = -1, y = -1 };
             self.nwXLabel:setName(getText("IGUI_MMS_xCoord", ""));
             self.nwXEntryBox:setText(tostring(center.x or ""));
@@ -831,14 +1014,28 @@ function MapMarkerManager:populateElementsDetails(markerData)
             self.lockZoomTickBox:setSelected(1, markerData.lockZoom or false);
             self.lockZoomTickBox:setVisible(true);
 
-            if markerData.color then
-                self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
-                self.colorPickerButton.backgroundColor = markerData.color;
-                self.colorLabel:setVisible(true);
-                self.colorPickerButton:setVisible(true);
-            end
+            self.colorPickerMarkerButton.backgroundColor = markerData.color or { r = 1, g = 1, b = 1, a = 1 };
+            self.colorLabelMarker:setVisible(true);
+            self.colorPickerMarkerButton:setVisible(true);
         end,
         ["area"] = function()
+            self.enableMarkerNameTickBox:setSelected(1, markerData.isNameEnabled or false);
+            self.enableMarkerNameTickBox:setVisible(true);
+
+            self.markerNameFontLabel:setVisible(true);
+
+            self.markerNameFontComboBox:select(markerData.nameFont or MapMarkerSystem.FontList[1]);
+            self.markerNameFontComboBox:setVisible(true);
+
+            self.colorPickerMarkerNameButton.backgroundColor = markerData.colorName or { r = 1, g = 1, b = 1, a = 1 };
+            self.colorLabelMarkerName:setVisible(true);
+            self.colorPickerMarkerNameButton:setVisible(true);
+
+            self.scaleNameEntryBox:setText(tostring(markerData.scaleName or ""));
+            self.scaleNameEntryBox:setEditable(true);
+            self.scaleNameLabel:setVisible(true);
+            self.scaleNameEntryBox:setVisible(true);
+
             local nw = markerData.coordinates.nw or { x = -1, y = -1 };
             local se = markerData.coordinates.se or { x = -1, y = -1 };
 
@@ -868,12 +1065,9 @@ function MapMarkerManager:populateElementsDetails(markerData)
             self.seYEntryBox:setEditable(true);
             self.pickSEButton:setVisible(true);
 
-            if markerData.color then
-                self.colorLabel:setColor(markerData.color.r, markerData.color.g, markerData.color.b);
-                self.colorPickerButton.backgroundColor = markerData.color;
-                self.colorLabel:setVisible(true);
-                self.colorPickerButton:setVisible(true);
-            end
+            self.colorPickerMarkerButton.backgroundColor = markerData.color or { r = 1, g = 1, b = 1, a = 1 };
+            self.colorLabelMarker:setVisible(true);
+            self.colorPickerMarkerButton:setVisible(true);
         end
     };
 
@@ -882,22 +1076,20 @@ function MapMarkerManager:populateElementsDetails(markerData)
             self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_TextureX"));
             self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_TextureY"));
             self.textureEntryBox:setTooltip(getText("Tooltip_MMS_TexturePath"));
-            self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
         end,
         ["rectangle"] = function()
             self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterX"));
             self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_RectCenterY"));
             self.seXEntryBox:setTooltip(getText("Tooltip_MMS_RectWidth"));
             self.seYEntryBox:setTooltip(getText("Tooltip_MMS_RectHeight"));
-            self.scaleEntryBox:setTooltip(getText("Tooltip_MMS_Scale"));
-            self.colorPickerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
+            self.colorPickerMarkerButton:setTooltip(getText("Tooltip_MMS_RectColorPicker"));
         end,
         ["area"] = function()
             self.nwXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX1"));
             self.nwYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY1"));
             self.seXEntryBox:setTooltip(getText("Tooltip_MMS_AreaX2"));
             self.seYEntryBox:setTooltip(getText("Tooltip_MMS_AreaY2"));
-            self.colorPickerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
+            self.colorPickerMarkerButton:setTooltip(getText("Tooltip_MMS_AreaColorPicker"));
         end
     };
 
@@ -906,8 +1098,7 @@ function MapMarkerManager:populateElementsDetails(markerData)
     self.seXEntryBox:setTooltip(nil);
     self.seYEntryBox:setTooltip(nil);
     self.textureEntryBox:setTooltip(nil);
-    self.scaleEntryBox:setTooltip(nil);
-    self.colorPickerButton:setTooltip(nil);
+    self.colorPickerMarkerButton:setTooltip(nil);
 
     if typeConfigs[markerData.markerType] then
         typeConfigs[markerData.markerType]();
@@ -1008,7 +1199,7 @@ function MapMarkerManager:onClickBttn(button)
         self.playerObj:setY(y);
         self.playerObj:setZ(0.0);
         self.playerObj:setLx(x);
-        self.playerObj:setLy(x);
+        self.playerObj:setLy(y);
     elseif button.internal == "DELETEMARKER" then
         local selectedMapMarkerIdx = self:getMapMarkerIdx();
         if not selectedMapMarkerIdx or not MapMarkerSystem.MapMarkers[selectedMapMarkerIdx] then return; end

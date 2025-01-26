@@ -1,9 +1,12 @@
 Tooltip_EN = {
 
     Tooltip_MMS_MarkerName = "Unique name to identify this marker. <LINE>Nn special characters.",
-    
+    Tooltip_MMS_EnableMarkerName = "Tick the box to display the marker name next to the marker.",
     Tooltip_MMS_EnableMarker = "Tick the box to enable the marker.",
     
+    Tooltip_MMS_MarkerNameColorPicker = "Click to open color selection for the marker's name.",
+    Tooltip_MMS_NameScale = "Scale of the marker name.",
+
     Tooltip_MMS_TextureX = "X coordinate for the texture marker's center location.",
     Tooltip_MMS_TextureY = "Y coordinate for the texture marker's center location.",
 
