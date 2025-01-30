@@ -5,6 +5,11 @@ IGUI_EN = {
     IGUI_MMS_AddMarker = "Add Marker",
     IGUI_MMS_AddNewMarker = "Add New Marker",
 
+    IGUI_MMS_Import = "Import",
+    IGUI_MMS_Export = "Export",
+
+    IGUI_MMS_ExportSuccesful = "Markers exported succesfully to:\n%1\n\nOpen the file ?",
+
     IGUI_MMS_MarkerType = "Marker Type",
     IGUI_MMS_TextureMarker = "Texture Marker",
     IGUI_MMS_RectangleMarker = "Rectangle Marker",

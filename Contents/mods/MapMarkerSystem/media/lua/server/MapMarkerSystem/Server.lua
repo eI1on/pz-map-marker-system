@@ -97,6 +97,16 @@ function MapMarkerSystem.Server.ServerCommands.AddMapMarker(player, args)
     MapMarkerSystem.Server.writeLog({ loggerName = "admin", logText = logText });
 end
 
+function MapMarkerSystem.Server.ServerCommands.ImportMapMarkerData(player, args)
+    local newMapMarkers = args.mapMarkers;
+    local mapMarkers = MapMarkerSystem.Shared.RequestMarkers();
+
+    for i = #mapMarkers, #newMapMarkers + 1, -1 do table.remove(mapMarkers, i); end
+    for _, newZone in pairs(newMapMarkers) do table.insert(mapMarkers, newZone); end
+
+    MapMarkerSystem.Server.PushUpdateToAll(mapMarkers);
+end
+
 function MapMarkerSystem.Server.ServerCommands.RemoveMapMarker(player, args)
     local mapMarkers = MapMarkerSystem.Shared.RequestMarkers();
     local selectedIdx = args.selectedIdx;

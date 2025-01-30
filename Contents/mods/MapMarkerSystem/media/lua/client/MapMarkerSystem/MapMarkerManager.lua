@@ -1,5 +1,6 @@
 local Globals = require("Starlit/Globals");
 local Logger = require("MapMarkerSystem/Logger");
+local FileUtils = require("ElyonLib/FileUtils");
 local MapMarkerSystem = require("MapMarkerSystem/Shared");
 local AddMarkerModal = require("MapMarkerSystem/AddMarkerModal");
 
@@ -10,7 +11,7 @@ local CONST = {
     PADDING = 10,
     ELEMENT_HEIGHT = 25,
     WINDOW_WIDTH = 350,
-    WINDOW_HEIGHT = 750,
+    WINDOW_HEIGHT = 800,
     LABEL_WIDTH = 80,
     ENTRY_WIDTH = 200,
     NUMBER_ENTRY_WIDTH = 50,
@@ -77,6 +78,27 @@ function MapMarkerManager:createChildren()
     self:addChild(self.headerLabel);
     y = y + CONST.ELEMENT_HEIGHT + CONST.SECTION_SPACING * 2;
 
+    self.exportButton = ISButton:new(self.width - CONST.BUTTON_WIDTH - CONST.PADDING, y, CONST.BUTTON_WIDTH,
+        CONST.BUTTON_HEIGHT, getText("IGUI_MMS_Export"), self, self.onExport);
+    self.exportButton:initialise();
+    self.exportButton:instantiate();
+    self.exportButton:setFont(UIFont.Small);
+    self.exportButton:setWidthToTitle(10);
+    self:addChild(self.exportButton);
+
+    self.importButton = ISButton:new(self.exportButton:getX() - CONST.BUTTON_WIDTH - CONST.PADDING, y, CONST.BUTTON_WIDTH,
+        CONST.BUTTON_HEIGHT, getText("IGUI_MMS_Import"), self, self.onImport);
+    self.importButton:initialise();
+    self.importButton:instantiate();
+    self.importButton:setFont(UIFont.Small);
+    self.importButton:setWidthToTitle(10);
+    self:addChild(self.importButton);
+
+    self.exportButton:setX(self.width - self.exportButton:getWidth() - CONST.PADDING);
+    self.importButton:setX(self.exportButton:getX() - self.importButton:getWidth() - CONST.PADDING);
+
+    y = y + CONST.BUTTON_HEIGHT + CONST.ITEM_SPACING;
+
     -- Action Buttons Row
     self.addMarkerBtn = ISButton:new(x, y, CONST.BUTTON_WIDTH, CONST.BUTTON_HEIGHT, getText("IGUI_MMS_AddMarker"), self,
         MapMarkerManager.onClickBttn);
@@ -103,7 +125,6 @@ function MapMarkerManager:createChildren()
     self.deleteMarkerBtn:initialise();
     self.deleteMarkerBtn:instantiate();
     self.deleteMarkerBtn:setFont(UIFont.Medium);
-    -- self.deleteMarkerBtn:setWidthToTitle(CONST.BUTTON_WIDTH, false);
     self:addChild(self.deleteMarkerBtn);
     y = y + CONST.BUTTON_HEIGHT + CONST.SECTION_SPACING;
 
@@ -1238,6 +1259,50 @@ function MapMarkerManager:onClickPickLocation(button)
         self.seYEntryBox:onTextChange();
     end
 end
+
+function MapMarkerManager:onImport()
+    local markers = FileUtils.readJson("MapMarkerSystemMarkers.json", "Map Marker Manager", { isModFile = false });
+
+    if (not markers) or (type(markers) ~= "table") then
+        Logger:error("Map Marker System Markers IMPORT FAILED");
+        return;
+    end
+    sendClientCommand("MapMarkerSystem", "ImportMapMarkerData", { mapMarkers = markers });
+
+    self.refresh = 3;
+end
+
+function MapMarkerManager:onExport()
+    local cacheDir = Core.getMyDocumentFolder() ..
+        getFileSeparator() .. "Lua" .. getFileSeparator() .. "MapMarkerSystemMarkers.json";
+
+    local markers = MapMarkerSystem.Shared.RequestMarkers();
+
+    local success = false;
+    success = FileUtils.writeJson("MapMarkerSystemMarkers.json", markers, "Map Marker Manager", { createIfNull = true });
+
+    if success then
+        Logger:info("Map Marker System Markers EXPORTED SUCCESFULLY TO %s", cacheDir);
+        local modal = ISModalDialog:new(0, 0, 350, 150, getText("IGUI_MMS_ExportSuccesful", cacheDir),
+            true, nil, function(dummy, button, playerObj)
+                if button.internal == "NO" then return; end
+                if isDesktopOpenSupported() then
+                    showFolderInDesktop(cacheDir);
+                else
+                    openUrl(cacheDir);
+                end
+            end, self.playerNum, self.character);
+        modal:initialise();
+        modal.moveWithMouse = true;
+        modal:addToUIManager();
+        if JoypadState.players[self.playerNum + 1] then
+            setJoypadFocus(self.playerNum, modal);
+        end
+    else
+        Logger:error("Map Marker System Markers FAILED TO EXPORT TO %s", cacheDir);
+    end
+end
+
 
 function MapMarkerManager.openPanel()
     local x = getCore():getScreenWidth() / 1.5;
