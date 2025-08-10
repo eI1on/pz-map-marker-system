@@ -1,6 +1,6 @@
 local Globals = require("Starlit/Globals");
 local Logger = require("MapMarkerSystem/Logger");
-local FileUtils = require("ElyonLib/FileUtils");
+local FileUtils = require("ElyonLib/FileUtils/FileUtils");
 local MapMarkerSystem = require("MapMarkerSystem/Shared");
 local AddMarkerModal = require("MapMarkerSystem/AddMarkerModal");
 
