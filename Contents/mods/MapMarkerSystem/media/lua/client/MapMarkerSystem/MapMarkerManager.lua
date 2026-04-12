@@ -86,7 +86,8 @@ function MapMarkerManager:createChildren()
     self.exportButton:setWidthToTitle(10);
     self:addChild(self.exportButton);
 
-    self.importButton = ISButton:new(self.exportButton:getX() - CONST.BUTTON_WIDTH - CONST.PADDING, y, CONST.BUTTON_WIDTH,
+    self.importButton = ISButton:new(self.exportButton:getX() - CONST.BUTTON_WIDTH - CONST.PADDING, y, CONST
+        .BUTTON_WIDTH,
         CONST.BUTTON_HEIGHT, getText("IGUI_MMS_Import"), self, self.onImport);
     self.importButton:initialise();
     self.importButton:instantiate();
@@ -1303,7 +1304,6 @@ function MapMarkerManager:onExport()
     end
 end
 
-
 function MapMarkerManager.openPanel()
     local x = getCore():getScreenWidth() / 1.5;
     local y = getCore():getScreenHeight() / 6;
@@ -1317,60 +1317,17 @@ function MapMarkerManager.openPanel()
     end
 end
 
-local ISDebugMenu_setupButtons = ISDebugMenu.setupButtons;
----@diagnostic disable-next-line: duplicate-set-field
-function ISDebugMenu:setupButtons()
-    MapMarkerSystem.MapMarkers = MapMarkerSystem.Shared.RequestMarkers();
-    self:addButtonInfo(getText("IGUI_MMS_MapMarkerSystem"), function() MapMarkerManager.openPanel() end, "MAIN");
-    ISDebugMenu_setupButtons(self);
-end
+local MenuDock = require("ElyonLib/UI/MenuDock/MenuDock")
 
-local ISAdminPanelUI_create = ISAdminPanelUI.create;
----@diagnostic disable-next-line: duplicate-set-field
-function ISAdminPanelUI:create()
-    ISAdminPanelUI_create(self);
-    local fontHeight = getTextManager():getFontHeight(UIFont.Small);
-    local btnWid = 150;
-    local btnHgt = math.max(25, fontHeight + 3 * 2);
-    local btnGapY = 5;
-
-    local lastButton = self.children[self.IDMax - 1];
-    lastButton = lastButton.internal == "CANCEL" and self.children[self.IDMax - 2] or lastButton;
-
-    MapMarkerSystem.MapMarkers = MapMarkerSystem.Shared.RequestMarkers();
-
-    self.showMapMarkerSystem = ISButton:new(lastButton.x, lastButton.y + btnHgt + btnGapY, btnWid, btnHgt,
-        getText("IGUI_MMS_MapMarkerSystem"), self, MapMarkerManager.openPanel);
-    self.showMapMarkerSystem.internal = "";
-    self.showMapMarkerSystem:initialise();
-    self.showMapMarkerSystem:instantiate();
-    self.showMapMarkerSystem.borderColor = self.buttonBorderColor;
-    self:addChild(self.showMapMarkerSystem);
-end
-
-local function onFillWorldObjectContextMenu(player, context, worldobjects, test)
-    if not player then return; end
-
-    local hasAccess = false;
-    if Globals.isSingleplayer then
-        hasAccess = true;
-    elseif Globals.isClient then
-        -- hasAccess = isAdmin();
-    end
-
-    if Globals.isDebug then hasAccess = true; end
-
-    if hasAccess then
-        context:addOptionOnTop(
-            getText("IGUI_MMS_MapMarkerSystem"), worldobjects,
-            function()
-                MapMarkerManager.openPanel();
-            end
-        );
-    end
-end
-
-Events.OnFillWorldObjectContextMenu.Remove(onFillWorldObjectContextMenu);
-Events.OnFillWorldObjectContextMenu.Add(onFillWorldObjectContextMenu);
+MenuDock.registerButton({
+    id = "map_marker_system",
+    title = getText("IGUI_MMS_MapMarkerSystem"),
+    icon = "media/ui/ui_icon_map_marker_system.png",
+    minimumAccessLevel = "Admin",
+    allowSinglePlayer = true,
+    onClick = function(playerNum, entry)
+        MapMarkerManager.openPanel();
+    end,
+})
 
 return MapMarkerManager;

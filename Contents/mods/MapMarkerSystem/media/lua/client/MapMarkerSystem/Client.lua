@@ -234,7 +234,6 @@ local function sendCommand()
 end
 Events.OnTick.Add(sendCommand);
 
-
 function MapMarkerSystem.Client.ClientCommands.LoadMapMarkers(args)
     if type(args) ~= "table" then args = {}; end
     MapMarkerSystem.MapMarkers = args;
